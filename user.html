@@ -2230,38 +2230,30 @@
             let cached = null;
             try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch(e) { cached = null; }
 
-            // COLD START (nothing cached yet, e.g. first-ever app open): waiting on
-            // the contentVersion round-trip first only adds latency with zero
-            // benefit here, since there's no cached copy to compare it against.
-            // Fetch the real data immediately, run the version check in parallel
-            // just so we have it ready to store alongside the result.
-            if (!cached) {
-                try {
-                    const [snap, versions] = await Promise.all([get(ref(db, path)), getContentVersions()]);
-                    const serverVersion = versions[name] || 0;
-                    try { localStorage.setItem(cacheKey, JSON.stringify({ v: serverVersion, data: snap.val() })); } catch(e) {}
-                    callback(snap);
-                } catch(e) {
-                    console.error(`[cache] ${name} load failed`, e);
-                    if (onError) onError(e);
-                }
-                return;
-            }
-
-            const versions = await getContentVersions();
-            const serverVersion = versions[name] || 0;
-
-            if (cached.v === serverVersion) {
+            // 1. INSTANT RENDER: Agar data phone me save hai, toh Firebase ka wait kiye bina turant (0ms me) dikha do!
+            if (cached && cached.data) {
                 callback(makeFakeSnapshot(cached.data));
-                return;
             }
+
+            // 2. BACKGROUND SYNC: Ab chupchap background me check karo ki admin ne kuch naya toh nahi daala
             try {
+                const versions = await getContentVersions();
+                const serverVersion = versions[name] || 0;
+
+                // Agar admin ne kuch change nahi kiya hai, toh aage kuch mat karo
+                if (cached && cached.v === serverVersion) {
+                    return;
+                }
+
+                // Agar naya update aaya hai (ya pehli baar load ho raha hai), tabhi Firebase se fetch karo
                 const snap = await get(ref(db, path));
                 try { localStorage.setItem(cacheKey, JSON.stringify({ v: serverVersion, data: snap.val() })); } catch(e) {}
+                
+                // Naya data aate hi screen ko refresh kar do
                 callback(snap);
             } catch(e) {
                 console.error(`[cache] ${name} load failed`, e);
-                if (onError) onError(e);
+                if (!cached && onError) onError(e);
             }
         }
 
