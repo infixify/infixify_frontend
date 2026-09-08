@@ -2073,7 +2073,7 @@
     <script type="module">
         import { getAuth, setPersistence, indexedDBLocalPersistence, browserLocalPersistence, inMemoryPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
         import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getDatabase, ref, get, set, update, push, query, orderByChild, equalTo, onValue, off, remove, serverTimestamp, runTransaction, onDisconnect, goOffline, goOnline } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+        import { getDatabase, ref, get, set, update, push, query, orderByChild, equalTo, limitToLast, onValue, off, remove, serverTimestamp, runTransaction, onDisconnect, goOffline, goOnline } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
         const fCfg = { apiKey: "AIzaSyAUhJfHe0vlwcaLug6WB_x-NbtlRgb5MSQ",
   authDomain: "infixify-9d922.firebaseapp.com",
@@ -3556,7 +3556,10 @@ else if(id==='reports-export-section') {
             if(!CHK_P('support_tickets')) return;
             const tb = E('tbTickets');
             tb.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Loading...</td></tr>`;
-            const q = query(ref(rd, 'supportTickets'), orderByChild('ticketType'), equalTo(CUR_TICKET_TYPE));
+            // PERF FIX: pehle is category ke saare tickets (unlimited) fetch hote the.
+            // Ab sirf last 50 (per category) laate hain — is fetch ka data kahi aur
+            // (dashboard/stats) use nahi hota, isliye ye safe hai.
+            const q = query(ref(rd, 'supportTickets'), orderByChild('ticketType'), equalTo(CUR_TICKET_TYPE), limitToLast(50));
             get(q).then(snap => {
                 if(!snap.exists()) { tb.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">No tickets in this category.</td></tr>`; return; }
                 const tickets = [];
@@ -4139,7 +4142,10 @@ if (id && tDat && d.showIdPass && d.roomId && d.roomPassword && (d.roomId !== (t
 
         window.cachedResultMatches = [];
 
-        const RENDER_RESULT_MATCHES_LIST = () => {
+        const RESULT_MATCHES_PAGE_SIZE = 50;
+        let resultMatchesCurrentPage = 1;
+        const RENDER_RESULT_MATCHES_LIST = (page) => {
+            if (page) resultMatchesCurrentPage = page;
             const qRaw = (E('resMatchSearchInput')?.value || '').trim().toLowerCase();
             const statusFilter = (E('resMatchFilterStatus')?.value || '').trim();
             let matches = window.cachedResultMatches;
@@ -4153,16 +4159,38 @@ if (id && tDat && d.showIdPass && d.roomId && d.roomPassword && (d.roomId !== (t
                 });
             }
 
+            const pagerEl = () => {
+                const tableCard = E('tbResultMatches').closest('.glass-card');
+                if (!tableCard) return null;
+                let pager = document.getElementById('resultMatchesPagerEl');
+                if (!pager) {
+                    pager = document.createElement('div');
+                    pager.id = 'resultMatchesPagerEl';
+                    pager.className = 'd-flex justify-content-between align-items-center p-2';
+                    tableCard.appendChild(pager);
+                }
+                return pager;
+            };
+
             if(!matches.length) {
                 let emptyMsg = 'No Matches Found';
                 if(qRaw && statusFilter) emptyMsg = `No "${statusFilter.toUpperCase()}" matches found for "${qRaw}"`;
                 else if(qRaw) emptyMsg = `No matches found for "${qRaw}"`;
                 else if(statusFilter) emptyMsg = `No "${statusFilter.toUpperCase()}" matches found`;
                 E('tbResultMatches').innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">${emptyMsg}</td></tr>`;
+                const pager = pagerEl();
+                if (pager) pager.innerHTML = '';
                 return;
             }
 
-            E('tbResultMatches').innerHTML = matches.map(t => {
+            // PERF FIX: DISPLAY-only pagination — poori filtered list par filter/search
+            // chalta hai jaisa pehle tha, sirf render 50-50 rows me hota hai taaki
+            // hazaaron matches ek saath DOM me daalne se browser slow na ho.
+            const totalPages = Math.max(1, Math.ceil(matches.length / RESULT_MATCHES_PAGE_SIZE));
+            if (resultMatchesCurrentPage > totalPages) resultMatchesCurrentPage = totalPages;
+            const pageMatches = matches.slice((resultMatchesCurrentPage - 1) * RESULT_MATCHES_PAGE_SIZE, resultMatchesCurrentPage * RESULT_MATCHES_PAGE_SIZE);
+
+            E('tbResultMatches').innerHTML = pageMatches.map(t => {
                 const mName = t.modeName || MC[t.modeId]?.name || 'Unknown Mode';
                 const statusColor = t.status==='upcoming'?'info':(t.status==='ongoing'?'warning':(t.status==='draft'?'secondary':(t.status==='canceled'?'danger':'success')));
                 const bookedSlotsCount = Object.values(t.registeredPlayers || {}).reduce((acc, p) => acc + (p.slots ? p.slots.length : (p.slot ? 1 : 0)), 0);
@@ -4179,6 +4207,16 @@ if (id && tDat && d.showIdPass && d.roomId && d.roomPassword && (d.roomId !== (t
                     <td><button class="btn btn-sm btn-outline-warning fw-bold py-1" data-action="fill-match-results" data-id="${t.id}"><i class="bi bi-magic"></i> Fill Match Results</button></td>
                 </tr>`;
             }).join('');
+
+            const pager = pagerEl();
+            if (pager) {
+                pager.innerHTML = `<small class="text-muted">Page ${resultMatchesCurrentPage} of ${totalPages} (${matches.length} matches)</small>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-light" ${resultMatchesCurrentPage<=1?'disabled':''} data-rm-page="${resultMatchesCurrentPage-1}">Prev</button>
+                        <button class="btn btn-sm btn-outline-light" ${resultMatchesCurrentPage>=totalPages?'disabled':''} data-rm-page="${resultMatchesCurrentPage+1}">Next</button>
+                    </div>`;
+                pager.querySelectorAll('[data-rm-page]').forEach(btn => { btn.onclick = () => RENDER_RESULT_MATCHES_LIST(Number(btn.dataset.rmPage)); });
+            }
         };
 
         const RX_RESULT_MATCHES = async () => {
@@ -4198,8 +4236,8 @@ if (id && tDat && d.showIdPass && d.roomId && d.roomPassword && (d.roomId !== (t
             } catch(e) { E('tbResultMatches').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error loading matches: ${e.message}</td></tr>`; }
         };
 
-        if(E('resMatchSearchInput')) E('resMatchSearchInput').addEventListener('input', RENDER_RESULT_MATCHES_LIST);
-        if(E('resMatchFilterStatus')) E('resMatchFilterStatus').addEventListener('change', RENDER_RESULT_MATCHES_LIST);
+        if(E('resMatchSearchInput')) E('resMatchSearchInput').addEventListener('input', () => RENDER_RESULT_MATCHES_LIST(1));
+        if(E('resMatchFilterStatus')) E('resMatchFilterStatus').addEventListener('change', () => RENDER_RESULT_MATCHES_LIST(1));
 
         if(E('tbResultMatches')) {
             E('tbResultMatches').addEventListener('click', (e) => {
@@ -4342,15 +4380,30 @@ Copy Player Name"></i></div>
 
         E('rankSearchInput').oninput = e => { const tm=e.target.value.toLowerCase(); E('tbRanks').querySelectorAll('tr').forEach(r=>{ const t1=r.children[0].textContent.toLowerCase(); r.style.display=t1.includes(tm)?'':'none'; }); };
 
-        const R_US = async () => { 
-    let h=''; 
+        const USERS_PAGE_SIZE = 50;
+        let usersCurrentPage = 1;
+        const R_US = async (page) => {
+    if (page) usersCurrentPage = page;
+    let h='';
     // NAYA: Balance filter (All / >0 / =0) — Wallet Balance column jaisa hi
     // (Deposit Balance + Winning Balance) combined total use karta hai.
     const balFilter = E('userBalanceFilter') ? E('userBalanceFilter').value : 'all';
-    Object.entries(UC).sort(([,a],[,b])=>(b.createdAt||0)-(a.createdAt||0)).forEach(([key, u]) => { 
+    const rows = Object.entries(UC).sort(([,a],[,b])=>(b.createdAt||0)-(a.createdAt||0)).filter(([, u]) => {
         const totalBal = (Number(u.balance)||0) + (Number(u.winningCash)||0);
-        if(balFilter === 'gt0' && !(totalBal > 0)) return;
-        if(balFilter === 'eq0' && !(totalBal === 0)) return;
+        if(balFilter === 'gt0' && !(totalBal > 0)) return false;
+        if(balFilter === 'eq0' && !(totalBal === 0)) return false;
+        return true;
+    });
+    // PERF FIX: pehle sab users ek saath render hote the (hazaaron <tr> se browser
+    // slow/crash ho sakta tha). Ab sirf current page ke 50 hi render hote hain —
+    // data already-fetched hi hai (dashboard/leaderboard ko poora data chahiye),
+    // isliye ye sirf DISPLAY-level pagination hai, koi naya Firebase query nahi.
+    window.ALL_USERS_ROWS = rows;
+    const totalPages = Math.max(1, Math.ceil(rows.length / USERS_PAGE_SIZE));
+    if (usersCurrentPage > totalPages) usersCurrentPage = totalPages;
+    const pageRows = rows.slice((usersCurrentPage - 1) * USERS_PAGE_SIZE, usersCurrentPage * USERS_PAGE_SIZE);
+    pageRows.forEach(([key, u]) => {
+        const totalBal = (Number(u.balance)||0) + (Number(u.winningCash)||0);
         const uid = u.uid || key;
         const email = escapeHtml(u.email || 'No Email');
         const name = escapeHtml(u.displayName || 'Player');
@@ -4367,10 +4420,61 @@ Copy Player Name"></i></div>
         </tr>`; 
     }); 
     E('tbUsers').innerHTML = h || `<tr><td colspan="5" class="text-center text-muted py-4">No Users Found${balFilter!=='all' ? ' For This Filter' : ''}</td></tr>`; 
+
+    // Pagination controls — inserted right after the table's parent card if not already present.
+    const tableCard = E('tbUsers').closest('.glass-card');
+    if (tableCard) {
+        let pager = document.getElementById('usersPagerEl');
+        if (!pager) {
+            pager = document.createElement('div');
+            pager.id = 'usersPagerEl';
+            pager.className = 'd-flex justify-content-between align-items-center p-2';
+            tableCard.appendChild(pager);
+        }
+        pager.innerHTML = `<small class="text-muted">Page ${usersCurrentPage} of ${totalPages} (${rows.length} users)</small>
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-light" ${usersCurrentPage<=1?'disabled':''} data-users-page="${usersCurrentPage-1}">Prev</button>
+                <button class="btn btn-sm btn-outline-light" ${usersCurrentPage>=totalPages?'disabled':''} data-users-page="${usersCurrentPage+1}">Next</button>
+            </div>`;
+        pager.querySelectorAll('[data-users-page]').forEach(btn => {
+            btn.onclick = () => R_US(Number(btn.dataset.usersPage));
+        });
+    }
 };
 
-        E('userBalanceFilter')?.addEventListener('change', () => R_US());
-        E('userSearchInput').oninput = e => { const tm=e.target.value.toLowerCase(); E('tbUsers').querySelectorAll('tr').forEach(r=>{ const t1=r.children[0].textContent.toLowerCase(); const t2=r.children[1].textContent.toLowerCase(); r.style.display=(t1.includes(tm)||t2.includes(tm))?'':'none'; }); };
+        E('userBalanceFilter')?.addEventListener('change', () => R_US(1));
+        E('userSearchInput').oninput = e => {
+            const tm = e.target.value.toLowerCase();
+            // PERF FIX: search ab sirf currently-rendered page tak seemित nahi —
+            // poore fetched users me se dhoondta hai (data already local hai,
+            // koi naya Firebase read nahi hota), aur matches ko pagination
+            // bypass karke seedha dikha deta hai. Search khaali karne par
+            // normal paginated view wapas aa jaata hai.
+            if (!tm) { R_US(usersCurrentPage); return; }
+            const rows = window.ALL_USERS_ROWS || [];
+            let h = '';
+            rows.forEach(([key, u]) => {
+                const uid = u.uid || key;
+                const email = (u.email || '').toLowerCase();
+                const name = (u.displayName || '').toLowerCase();
+                if (!(name.includes(tm) || email.includes(tm) || uid.toLowerCase().includes(tm))) return;
+                const totalBal = (Number(u.balance)||0) + (Number(u.winningCash)||0);
+                h += `<tr data-u="${uid}">
+                    <td>
+                        <strong class="text-white text-truncate d-inline-block mb-1" style="max-width:180px;">Name : ${escapeHtml(u.displayName||'Player')} <span class="badge bg-info text-dark ms-1" style="font-size:0.6rem;">Lvl ${Math.floor(Math.sqrt((Number(u.xp)||0) / 50)) + 1}</span></strong><br>
+                        <small class="text-muted font-monospace text-truncate d-inline-block mb-1" style="max-width:180px;">Email : ${escapeHtml(u.email||'No Email')}</small><br>
+                        <small class="text-info font-monospace text-truncate d-inline-block" style="max-width:180px;">UID : ${uid}</small>
+                    </td>
+                    <td><small class="text-warning fw-bold bg-dark px-1 rounded border border-secondary text-truncate" style="max-width:80px;">${u.referralCode||'N/A'}</small></td>
+                    <td class="text-success fw-bold font-monospace fs-5">${FMT_C(totalBal.toFixed(2))}</td>
+                    <td><span class="badge-premium badge-${u.status==='banned'?'danger':'success'}">${(u.status||'active').toUpperCase()}</span></td>
+                    <td><button class="btn btn-sm btn-outline-info fw-bold d-flex align-items-center gap-1 py-1" data-action="in-us" data-id="${uid}"><i class="bi bi-eye-fill"></i> View User</button></td>
+                </tr>`;
+            });
+            E('tbUsers').innerHTML = h || `<tr><td colspan="5" class="text-center text-muted py-4">No Users Match Search</td></tr>`;
+            const pager = document.getElementById('usersPagerEl');
+            if (pager) pager.innerHTML = `<small class="text-muted">Search results (not paginated)</small>`;
+        };
         
         E('fmUsCr').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('user_mgt')) return TS('Unauthorized','error'); const c=await createUserWithEmailAndPassword(sa, E('ucE').value, E('ucP').value); const rc=Math.floor(1000+Math.random()*9000).toString(); await set(ref(rd, `users/${c.user.uid}`), {uid:c.user.uid, email:E('ucE').value, displayName:E('ucN').value, balance:Number(E('ucC').value), winningCash:0, bonusCash:0, lifetimeWinnings:0, status:'active', referralCode:rc, createdAt:Date.now()}); LOG_ACT('staff','Created User Account', E('ucE').value); CLR_CACHE('users'); TS('User Added Successfully'); ML['userCreateModal'].hide(); await R_US(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
@@ -4569,7 +4673,10 @@ E('fmAdj').onsubmit = e => {
             return 'withdrawal'; // Cash Withdraw + Redeem Withdraw dono isi ek category me
         };
 
-        const renderLedgerRows = () => {
+        const LEDGER_PAGE_SIZE = 50;
+        let ledgerCurrentPage = 1;
+        const renderLedgerRows = (page) => {
+            if (page) ledgerCurrentPage = page;
             const filterVal = E('txFilterType') ? E('txFilterType').value : 'all';
             const searchVal = E('txSearch') ? E('txSearch').value.trim().toLowerCase() : '';
             let list = window.TX_LEDGER_DATA || [];
@@ -4584,9 +4691,33 @@ E('fmAdj').onsubmit = e => {
                 });
             }
 
+            // PERF FIX: hazaaron transaction rows ek saath render karne se browser
+            // slow/crash ho sakta tha. Filter/search poori (already-fetched) list
+            // par chalta hai jaisa pehle tha — sirf DISPLAY 50-50 rows me hota hai.
+            const totalPages = Math.max(1, Math.ceil(list.length / LEDGER_PAGE_SIZE));
+            if (ledgerCurrentPage > totalPages) ledgerCurrentPage = totalPages;
+            const pageList = list.slice((ledgerCurrentPage - 1) * LEDGER_PAGE_SIZE, ledgerCurrentPage * LEDGER_PAGE_SIZE);
+
             let h = '';
-            list.forEach(x=>{ h+=`<tr><td><small class="font-monospace">${DT(x.d)}</small></td><td><span class="badge-premium badge-${x.t==='Deposit'?'success':'danger'}">${x.t}</span></td><td>${FORMAT_USER(x.u)}</td><td class="text-white fw-bold font-monospace fs-6">${FMT_C(x.am)}</td><td><span class="badge bg-dark border border-secondary text-${(x.s==='completed'||x.s==='success')?'success':(x.s==='pending'?'warning':'danger')}">${(x.s||'').toUpperCase()}</span></td><td><div class="text-truncate text-muted small" style="max-width:120px;" title="${x.ctx}">${x.ctx}</div></td></tr>`; });
+            pageList.forEach(x=>{ h+=`<tr><td><small class="font-monospace">${DT(x.d)}</small></td><td><span class="badge-premium badge-${x.t==='Deposit'?'success':'danger'}">${x.t}</span></td><td>${FORMAT_USER(x.u)}</td><td class="text-white fw-bold font-monospace fs-6">${FMT_C(x.am)}</td><td><span class="badge bg-dark border border-secondary text-${(x.s==='completed'||x.s==='success')?'success':(x.s==='pending'?'warning':'danger')}">${(x.s||'').toUpperCase()}</span></td><td><div class="text-truncate text-muted small" style="max-width:120px;" title="${x.ctx}">${x.ctx}</div></td></tr>`; });
             E('tbLedger').innerHTML = h || `<tr><td colspan="6" class="text-center text-muted py-4">No Transactions Match This Filter</td></tr>`;
+
+            const tableCard = E('tbLedger').closest('.glass-card');
+            if (tableCard) {
+                let pager = document.getElementById('ledgerPagerEl');
+                if (!pager) {
+                    pager = document.createElement('div');
+                    pager.id = 'ledgerPagerEl';
+                    pager.className = 'd-flex justify-content-between align-items-center p-2';
+                    tableCard.appendChild(pager);
+                }
+                pager.innerHTML = `<small class="text-muted">Page ${ledgerCurrentPage} of ${totalPages} (${list.length} records)</small>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-light" ${ledgerCurrentPage<=1?'disabled':''} data-ledger-page="${ledgerCurrentPage-1}">Prev</button>
+                        <button class="btn btn-sm btn-outline-light" ${ledgerCurrentPage>=totalPages?'disabled':''} data-ledger-page="${ledgerCurrentPage+1}">Next</button>
+                    </div>`;
+                pager.querySelectorAll('[data-ledger-page]').forEach(btn => { btn.onclick = () => renderLedgerRows(Number(btn.dataset.ledgerPage)); });
+            }
         };
 
         const RX_TX = async () => { 
@@ -4602,8 +4733,8 @@ E('fmAdj').onsubmit = e => {
             } catch(e) { E('tbLedger').innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">Error loading records</td></tr>`; }
         };
         E('btnRefreshLedger')?.addEventListener('click', () => { A_EX(async () => { CLR_CACHE(['deposits', 'withdrawals']); await RX_TX(); TS('Transactions Refreshed'); }, E('btnRefreshLedger')); });
-        E('txFilterType')?.addEventListener('change', renderLedgerRows);
-        E('txSearch')?.addEventListener('input', renderLedgerRows);
+        E('txFilterType')?.addEventListener('change', () => renderLedgerRows(1));
+        E('txSearch')?.addEventListener('input', () => renderLedgerRows(1));
 
 
         // VIP membership abhi active hai ya nahi — withdrawal tables me highlight/priority ke liye.
