@@ -219,7 +219,7 @@
         .ai-support-redirect-tile.ai-tutorial-redirect-tile { background: linear-gradient(135deg, rgba(239,68,68,0.14), rgba(251,146,60,0.14)); border: 1px solid rgba(239,68,68,0.35); }
         .ai-support-redirect-tile.ai-tutorial-redirect-tile:active { border-color: #ef4444; }
         .ai-support-redirect-tile.ai-tutorial-redirect-tile i.bi-play-circle-fill { color: #ef4444; font-size: 1rem; }
-        .game-card-new[data-bg-src] { background-image: none; opacity: 0.55; transition: opacity 0.35s ease, transform 0.2s; }
+        .game-card-new[data-bg-src] { background-image: none; opacity: 0.55; transition: opacity 0.05s ease, transform 0.2s; }
         .game-card-new[data-bg-src].bg-loaded { opacity: 1; }
         .game-card-new:active { transform: scale(0.95); }
         .game-card-new-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, transparent 60%); display: flex; align-items: flex-end; padding: 10px 8px; pointer-events: none;}
@@ -227,9 +227,9 @@
 
         .modes-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .mode-card { border-radius: var(--radius-md); background-size: cover; background-position: center; background-color: var(--ph-bg-2); position: relative; overflow: hidden; border: 1px solid var(--border-glass); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-soft); aspect-ratio: 16/9; }
-        .mode-card[data-bg-src] { background-image: none; opacity: 0.55; transition: opacity 0.35s ease, transform 0.2s; }
+        .mode-card[data-bg-src] { background-image: none; opacity: 0.55; transition: opacity 0.05s ease, transform 0.2s; }
         .mode-card[data-bg-src].bg-loaded { opacity: 1; }
-        [data-bg-src] { transition: opacity 0.35s ease; }
+        [data-bg-src] { transition: opacity 0.05s ease; }
         [data-bg-src]:not(.bg-loaded) { opacity: 0.55; }
         [data-bg-src].bg-loaded { opacity: 1; }
         .mode-card:active { transform: scale(0.95); }
@@ -3189,15 +3189,34 @@ if (themeContainer) themeContainer.style.display = 'block';
             } catch(e) { /* silent — non-critical tracking, kabhi bhi login block nahi karna */ }
         })();
         
-        // 1. Turant Header aur Skeleton dikhao aur Main Loader hatao
-        showSection('home-section'); 
-        getEl('homeSkeletonLoader').style.display = 'block';
-        getEl('homeRealContent').style.display = 'none';
+        // 1. INSTANTLY HIDE SKELETON IF PROFILE CACHED
+        const profileCacheKey = `cached_profile_${user.uid}`;
+        let hasLocalProfile = false;
+        try {
+            const cachedP = localStorage.getItem(profileCacheKey);
+            if (cachedP) {
+                userProfile = JSON.parse(cachedP);
+                userProfileLoaded = true;
+                hasLocalProfile = true;
+                
+                getEl('homeSkeletonLoader').style.display = 'none';
+                getEl('homeRealContent').style.display = 'block';
+                updateUIForUser();
+            }
+        } catch(e) {}
+
+        // Agar first time login hai, tabhi Skeleton dikhao
+        if (!hasLocalProfile) {
+            showSection('home-section'); 
+            getEl('homeSkeletonLoader').style.display = 'block';
+            getEl('homeRealContent').style.display = 'none';
+        } else {
+            showSection('home-section');
+        }
+        
         updateAiHelpFabVisibility();
         showLoader(false); 
 
-        // 👇 NAYA CODE YAHAN ADD KAREIN: 5 Second Failsafe 👇
-        // Agar 5 second tak Firebase se data nahi aata, toh skeleton forcefully hata do
         const skeletonFailsafe = setTimeout(() => {
             if (getEl('homeSkeletonLoader') && getEl('homeSkeletonLoader').style.display !== 'none') {
                 getEl('homeSkeletonLoader').style.display = 'none';
@@ -3206,47 +3225,38 @@ if (themeContainer) themeContainer.style.display = 'block';
                 showToast("Network is slow. Loading offline data...", "error");
             }
         }, 5000); 
-        // 👆 NAYA CODE YAHAN KHATAM 👆
 
-        // ... aapka purana code (devBanSnap wagera) ...
+        // BACKGROUND BAN CHECK (No 'await' blocking the UI!)
+        get(ref(db, `bannedDevices/${DEVICE_ID}`)).then(devBanSnap => {
+            if (devBanSnap.exists() && devBanSnap.val()) {
+                showToast('Your ID is Banned', 'error');
+                signOut(auth);
+            }
+        }).catch(e => window.dbgLog('Device ban check failed: ' + e.message));
 
-                try {
-                    const devBanSnap = await get(ref(db, `bannedDevices/${DEVICE_ID}`));
-                    if (devBanSnap.exists() && devBanSnap.val()) {
-                        showToast('Your ID is Banned', 'error');
-                        await signOut(auth);
-                        return;
-                    }
-                } catch(e) { window.dbgLog('Device ban check (login) failed: ' + e.message); }
+        try {
+            if (window.fcmToken && window.fcmToken !== "NA") {
+                set(ref(db, 'users/' + user.uid + '/fcmToken'), window.fcmToken);
+            }
+        } catch(e) {}
 
-                // Naya Sketchware wrapper 'window.fcmToken' set karke aur 'onFcmTokenReady()'
-                // call karke token deta hai (purana AndroidBridge.sendUid tarika ab use nahi hota).
-                // Agar page load ke waqt hi (login se pehle) token aa chuka tha, use abhi save kar do.
-                try {
-                    if (window.fcmToken && window.fcmToken !== "NA") {
-                        set(ref(db, 'users/' + user.uid + '/fcmToken'), window.fcmToken);
-                    }
-                } catch(e) { window.dbgLog('FCM token save (login) failed: ' + e.message); }
+        getEl('notificationBtnEl').style.display = 'flex';
+        const uRef = ref(db, 'users/' + user.uid);
+        const boundUid = user.uid; 
+        preloadContestCache(boundUid); 
+        
+        const uCallback = onValue(uRef, async (s) => { 
+            if (currentUser?.uid !== boundUid) return;
 
-                getEl('notificationBtnEl').style.display = 'flex';
-                const uRef = ref(db, 'users/' + user.uid);
-                const boundUid = user.uid; // is listener ka target uid — closure me capture kiya
-                preloadContestCache(boundUid); // NAYA: live data ka wait kiye bina cached "Upcoming Match" turant dikha do
-                
-                const uCallback = onValue(uRef, async (s) => { 
-                    if (currentUser?.uid !== boundUid) return;
+            clearTimeout(skeletonFailsafe); 
+            if (getEl('homeSkeletonLoader')) getEl('homeSkeletonLoader').style.display = 'none';
+            if (getEl('homeRealContent')) getEl('homeRealContent').style.display = 'block';
+            updateAiHelpFabVisibility();
 
-                    // PERF FIX: Pehle yahan 500ms ka artificial setTimeout delay tha jo data
-                    // aa jaane ke baad bhi skeleton ko rokta tha. Ab data milte hi turant
-                    // (bina kisi delay ke) skeleton hide karke asli content dikhate hain.
-                    clearTimeout(skeletonFailsafe); // Data aa gaya, failsafe ko cancel kar do
-                    if (getEl('homeSkeletonLoader')) getEl('homeSkeletonLoader').style.display = 'none';
-                    if (getEl('homeRealContent')) getEl('homeRealContent').style.display = 'block';
-                    updateAiHelpFabVisibility();
-
-                    if(s.exists()){ 
-                        userProfile = s.val(); 
-                        userProfileLoaded = true; 
+            if(s.exists()){ 
+                userProfile = s.val(); 
+                userProfileLoaded = true; 
+                try { localStorage.setItem(profileCacheKey, JSON.stringify(userProfile)); } catch(e){} // Save for next time
                         saveContestCache(boundUid); // NAYA: fresh joined-matches data cache me refresh karo
 
                         // FIX: Agar admin panel se is user ko "banned" kiya gaya hai, toh turant
