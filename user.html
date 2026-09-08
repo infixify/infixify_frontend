@@ -3179,6 +3179,17 @@ if (themeContainer) themeContainer.style.display = 'block';
     
     if (user) {
         // --- LOGGED IN USER LOGIC ---
+
+        // ADMIN TRACKING: kis hosting domain se ye session load hua (Netlify /
+        // Cloudflare Pages / kuch aur) — admin panel me dikhane/filter karne ke
+        // liye. Fire-and-forget, purana value pehle check karte hain taaki har
+        // app-open pe bewajah write na ho — sirf jab pehli baar ya value change
+        // ho tabhi likhte hain.
+        (async () => {
+            try {
+                await update(ref(db, `users/${user.uid}`), { appHost: window.location.hostname || 'unknown' });
+            } catch(e) { /* silent — non-critical tracking, kabhi bhi login block nahi karna */ }
+        })();
         
         // 1. Turant Header aur Skeleton dikhao aur Main Loader hatao
         showSection('home-section'); 

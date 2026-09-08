@@ -1206,6 +1206,12 @@
         <option value="gt0">Balance More Than 0 (Deposit + Winning)</option>
         <option value="eq0">Balance = 0 (Deposit + Winning)</option>
     </select>
+    <select class="form-select" id="userHostFilter" style="width:auto;">
+        <option value="all">All Versions</option>
+        <option value="cloudflare">Cloudflare (Latest)</option>
+        <option value="netlify">Netlify (Old)</option>
+        <option value="unknown">Unknown / Never Logged In (New)</option>
+    </select>
     <input type="search" class="form-control" id="userSearchInput" placeholder="Search users..." autocomplete="off" style="width:200px;">
     <button class="btn btn-outline-info fw-bold" onclick="UI.exportPDF('usDB', 'User Database', 'users.pdf')"><i class="bi bi-file-pdf"></i> Export PDF</button>
     <button class="btn-premium" data-action="add-user"><i class="bi bi-person-plus"></i> Add User</button>
@@ -4382,16 +4388,30 @@ Copy Player Name"></i></div>
 
         const USERS_PAGE_SIZE = 50;
         let usersCurrentPage = 1;
+        const classifyHost = (h) => {
+            if (!h) return 'unknown';
+            if (h.includes('netlify')) return 'netlify';
+            if (h.includes('pages.dev') || h.includes('cloudflare')) return 'cloudflare';
+            return 'unknown';
+        };
+        const hostBadge = (h) => {
+            const c = classifyHost(h);
+            if (c === 'cloudflare') return `<span class="badge bg-success" style="font-size:0.6rem;">Cloudflare (Latest)</span>`;
+            if (c === 'netlify') return `<span class="badge bg-warning text-dark" style="font-size:0.6rem;">Netlify (Old)</span>`;
+            return `<span class="badge bg-secondary" style="font-size:0.6rem;">Unknown</span>`;
+        };
         const R_US = async (page) => {
     if (page) usersCurrentPage = page;
     let h='';
     // NAYA: Balance filter (All / >0 / =0) — Wallet Balance column jaisa hi
     // (Deposit Balance + Winning Balance) combined total use karta hai.
     const balFilter = E('userBalanceFilter') ? E('userBalanceFilter').value : 'all';
+    const hostFilter = E('userHostFilter') ? E('userHostFilter').value : 'all';
     const rows = Object.entries(UC).sort(([,a],[,b])=>(b.createdAt||0)-(a.createdAt||0)).filter(([, u]) => {
         const totalBal = (Number(u.balance)||0) + (Number(u.winningCash)||0);
         if(balFilter === 'gt0' && !(totalBal > 0)) return false;
         if(balFilter === 'eq0' && !(totalBal === 0)) return false;
+        if(hostFilter !== 'all' && classifyHost(u.appHost) !== hostFilter) return false;
         return true;
     });
     // PERF FIX: pehle sab users ek saath render hote the (hazaaron <tr> se browser
@@ -4409,7 +4429,7 @@ Copy Player Name"></i></div>
         const name = escapeHtml(u.displayName || 'Player');
         h+=`<tr data-u="${uid}">
             <td>
-                <strong class="text-white text-truncate d-inline-block mb-1" style="max-width:180px;">Name : ${name} <span class="badge bg-info text-dark ms-1" style="font-size:0.6rem;">Lvl ${Math.floor(Math.sqrt((Number(u.xp)||0) / 50)) + 1}</span></strong><br>
+                <strong class="text-white text-truncate d-inline-block mb-1" style="max-width:180px;">Name : ${name} <span class="badge bg-info text-dark ms-1" style="font-size:0.6rem;">Lvl ${Math.floor(Math.sqrt((Number(u.xp)||0) / 50)) + 1}</span> ${hostBadge(u.appHost)}</strong><br>
                 <small class="text-muted font-monospace text-truncate d-inline-block mb-1" style="max-width:180px;">Email : ${email}</small><br>
                 <small class="text-info font-monospace text-truncate d-inline-block" style="max-width:180px;">UID : ${uid}</small>
             </td>
@@ -4443,6 +4463,7 @@ Copy Player Name"></i></div>
 };
 
         E('userBalanceFilter')?.addEventListener('change', () => R_US(1));
+        E('userHostFilter')?.addEventListener('change', () => R_US(1));
         E('userSearchInput').oninput = e => {
             const tm = e.target.value.toLowerCase();
             // PERF FIX: search ab sirf currently-rendered page tak seemित nahi —
@@ -4461,7 +4482,7 @@ Copy Player Name"></i></div>
                 const totalBal = (Number(u.balance)||0) + (Number(u.winningCash)||0);
                 h += `<tr data-u="${uid}">
                     <td>
-                        <strong class="text-white text-truncate d-inline-block mb-1" style="max-width:180px;">Name : ${escapeHtml(u.displayName||'Player')} <span class="badge bg-info text-dark ms-1" style="font-size:0.6rem;">Lvl ${Math.floor(Math.sqrt((Number(u.xp)||0) / 50)) + 1}</span></strong><br>
+                        <strong class="text-white text-truncate d-inline-block mb-1" style="max-width:180px;">Name : ${escapeHtml(u.displayName||'Player')} <span class="badge bg-info text-dark ms-1" style="font-size:0.6rem;">Lvl ${Math.floor(Math.sqrt((Number(u.xp)||0) / 50)) + 1}</span> ${hostBadge(u.appHost)}</strong><br>
                         <small class="text-muted font-monospace text-truncate d-inline-block mb-1" style="max-width:180px;">Email : ${escapeHtml(u.email||'No Email')}</small><br>
                         <small class="text-info font-monospace text-truncate d-inline-block" style="max-width:180px;">UID : ${uid}</small>
                     </td>
