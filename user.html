@@ -1826,7 +1826,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getDatabase, ref, get, set, update, push, query, orderByChild, equalTo, limitToLast, onValue, off, serverTimestamp, runTransaction, goOffline, goOnline } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+        import { getDatabase, ref, get, set, update, push, query, orderByChild, equalTo, limitToLast, limitToFirst, onValue, off, serverTimestamp, runTransaction, goOffline, goOnline } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
         import { initializeAuth, browserLocalPersistence, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -3227,13 +3227,13 @@ if (themeContainer) themeContainer.style.display = 'block';
                 const uCallback = onValue(uRef, async (s) => { 
                     if (currentUser?.uid !== boundUid) return;
 
-                    // Data load hote hi Skeleton chhupao aur Asli Content dikhao
-                    setTimeout(() => {
-                        clearTimeout(skeletonFailsafe); // 👇 NAYA: Data aa gaya, failsafe ko cancel kar do
-                        if (getEl('homeSkeletonLoader')) getEl('homeSkeletonLoader').style.display = 'none';
-                        if (getEl('homeRealContent')) getEl('homeRealContent').style.display = 'block';
-                        updateAiHelpFabVisibility();
-                    }, 500);
+                    // PERF FIX: Pehle yahan 500ms ka artificial setTimeout delay tha jo data
+                    // aa jaane ke baad bhi skeleton ko rokta tha. Ab data milte hi turant
+                    // (bina kisi delay ke) skeleton hide karke asli content dikhate hain.
+                    clearTimeout(skeletonFailsafe); // Data aa gaya, failsafe ko cancel kar do
+                    if (getEl('homeSkeletonLoader')) getEl('homeSkeletonLoader').style.display = 'none';
+                    if (getEl('homeRealContent')) getEl('homeRealContent').style.display = 'block';
+                    updateAiHelpFabVisibility();
 
                     if(s.exists()){ 
                         userProfile = s.val(); 
@@ -4364,7 +4364,8 @@ if (themeContainer) themeContainer.style.display = 'block';
         async function checkAndCompleteMyReferrals() {
     if(!currentUser) return;
     try {
-        const q = query(ref(db, 'pendingReferrals'), orderByChild('referrerUid'), equalTo(currentUser.uid));
+        // PERF FIX: sirf last 50 referrals laao, poori list nahi.
+        const q = query(ref(db, 'pendingReferrals'), orderByChild('referrerUid'), equalTo(currentUser.uid), limitToLast(50));
         const snap = await get(q);
         if(!snap.exists()) return;
 
@@ -4392,7 +4393,8 @@ if (themeContainer) themeContainer.style.display = 'block';
             if(!currentUser) return;
             if(activeReferralsListener) return;
 
-            const refQ = query(ref(db, 'pendingReferrals'), orderByChild('referrerUid'), equalTo(currentUser.uid));
+            // PERF FIX: sirf last 50 referrals laao, poori list nahi.
+            const refQ = query(ref(db, 'pendingReferrals'), orderByChild('referrerUid'), equalTo(currentUser.uid), limitToLast(50));
             activeReferralsListener = {
                 ref: refQ,
                 callback: onValue(refQ, (snap) => {
@@ -4603,6 +4605,15 @@ if (themeContainer) themeContainer.style.display = 'block';
 
             userTxns.sort(byLatestFirst);
             console.log('[DEBUG updateTxns] total userTxns:', userTxns.length, 'by type:', userTxns.reduce((acc,t)=>{acc[t.type]=(acc[t.type]||0)+1;return acc;},{}));
+
+            // PERF FIX: last 15 (combined, already-sorted) txns localStorage me cache
+            // kar dete hain — agli baar wallet section khulte hi ye turant (zero
+            // loading delay) dikh jaate hain jab tak live listeners fresh data na
+            // le aayein. Per-user key taaki alag account pe galat cache na dikhe.
+            if (currentUser?.uid) {
+                try { localStorage.setItem('wallet_txn_cache_' + currentUser.uid, JSON.stringify(userTxns.slice(0, 15))); } catch(e) {}
+            }
+
             if(currentSectionId === 'wallet-section') renderWalletHistory();
             if(document.getElementById('viewAllTxnModalEl')?.classList.contains('show')) renderAllTxnModal();
         }
@@ -4610,14 +4621,36 @@ if (themeContainer) themeContainer.style.display = 'block';
 
         function listenToWalletHistory() {
             if(!currentUser) return;
-            const list = document.getElementById('walletHistoryListEl'); 
-            if(list && userTxns.length === 0) list.innerHTML = '<div class="text-center py-4"><div class="spinner-border glow-text" style="color:var(--accent-cyan);"></div></div>';
+            const list = document.getElementById('walletHistoryListEl');
+
+            // PERF FIX: pehle spinner dikhta tha jab tak network se kuch na aa jaaye.
+            // Ab agar localStorage me pichli baar ka cache hai, wo turant (instantly)
+            // dikha dete hain — live listeners neeche background me apna kaam karte
+            // rehte hain aur asli data aate hi updateTxns() khud overwrite kar dega.
+            if (list && userTxns.length === 0) {
+                let shownFromCache = false;
+                try {
+                    const cachedRaw = localStorage.getItem('wallet_txn_cache_' + currentUser.uid);
+                    if (cachedRaw) {
+                        const cachedTxns = JSON.parse(cachedRaw);
+                        if (Array.isArray(cachedTxns) && cachedTxns.length) {
+                            userTxns = cachedTxns;
+                            renderWalletHistory();
+                            shownFromCache = true;
+                        }
+                    }
+                } catch(e) {}
+                if (!shownFromCache) list.innerHTML = '<div class="text-center py-4"><div class="spinner-border glow-text" style="color:var(--accent-cyan);"></div></div>';
+            }
 
             // All four listeners below are registered exactly ONCE (guarded) and write into
             // module-scope arrays that persist across calls — this function itself is safe
             // to call again later (e.g. on every tournaments update) without losing data.
             if(!activeDepositsListener) {
-                const depRef = query(ref(db, 'deposits'), orderByChild('userId'), equalTo(currentUser.uid));
+                // PERF FIX: pehle 50 laate the, ab sirf last 20 — localStorage cache
+                // instant-display sambhal leta hai, listener ko itna bada rakhne ki
+                // zaroorat nahi.
+                const depRef = query(ref(db, 'deposits'), orderByChild('userId'), equalTo(currentUser.uid), limitToLast(20));
                 activeDepositsListener = { ref: depRef, callback: onValue(depRef, snap => {
                     console.log('[DEBUG deposits] snap.exists():', snap.exists(), 'count:', snap.exists() ? snap.size : 0);
                     walletDeposits = [];
@@ -4627,7 +4660,8 @@ if (themeContainer) themeContainer.style.display = 'block';
                 }, err => console.error('[DEBUG deposits] LISTENER ERROR:', err)) };
             }
             if(!activeWithdrawalsListener) {
-                const withRef = query(ref(db, 'withdrawals'), orderByChild('userId'), equalTo(currentUser.uid));
+                // PERF FIX: sirf last 20 withdrawals laao.
+                const withRef = query(ref(db, 'withdrawals'), orderByChild('userId'), equalTo(currentUser.uid), limitToLast(20));
                 activeWithdrawalsListener = { ref: withRef, callback: onValue(withRef, snap => {
                     console.log('[DEBUG withdrawals] snap.exists():', snap.exists(), 'count:', snap.exists() ? snap.size : 0);
                     walletWithdrawals = [];
@@ -4645,11 +4679,13 @@ if (themeContainer) themeContainer.style.display = 'block';
                 }) };
             }
             if(!activePersistedTxnsListener) {
-                const txnRef = query(ref(db, 'transactions'), orderByChild('userId'), equalTo(currentUser.uid));
+                // PERF FIX: sirf last 20 transactions laao.
+                const txnRef = query(ref(db, 'transactions'), orderByChild('userId'), equalTo(currentUser.uid), limitToLast(20));
                 activePersistedTxnsListener = { ref: txnRef, callback: onValue(txnRef, snap => { walletPersistedTxns = []; if(snap.exists()) snap.forEach(c => walletPersistedTxns.push({...c.val(), id: c.key})); updateTxns(); }) };
             }
             if(!activeWalletReferralsListener) {
-                const refRef = query(ref(db, 'pendingReferrals'), orderByChild('referrerUid'), equalTo(currentUser.uid));
+                // PERF FIX: sirf last 20 referrals laao.
+                const refRef = query(ref(db, 'pendingReferrals'), orderByChild('referrerUid'), equalTo(currentUser.uid), limitToLast(20));
                 activeWalletReferralsListener = { ref: refRef, callback: onValue(refRef, snap => { walletReferralsList = []; if(snap.exists()) snap.forEach(c => walletReferralsList.push({...c.val(), id: c.key})); updateTxns(); }) };
             }
             updateTxns();
@@ -4710,15 +4746,49 @@ if (themeContainer) themeContainer.style.display = 'block';
             showLoader(false);
         });
 
+        // YOUTUBE FIX: Agar admin ne tutorials me normal YouTube link (watch?v=, youtu.be/,
+        // shorts/, live/, etc.) daala hai toh use <iframe> me seedha daalne par
+        // ERR_BLOCKED_BY_RESPONSE aata hai, kyunki YouTube sirf /embed/ URLs ko frame
+        // karne deta hai. Ye function kisi bhi YouTube URL format ko dynamically check
+        // karke safe /embed/VIDEO_ID format me convert kar deta hai. Agar URL YouTube ka
+        // hai hi nahi (ya already /embed/ hai), toh use waisa hi rehne dete hain.
+        function toYouTubeEmbedUrl(url) {
+            if (!url) return '';
+            try {
+                const u = new URL(url, window.location.href);
+                const host = u.hostname.replace(/^www\./, '');
+                if (!/(^|\.)youtube\.com$|(^|\.)youtu\.be$/.test(host)) return url; // YouTube nahi hai, jaisa hai waisa rehne do
+
+                if (host === 'youtu.be') {
+                    const id = u.pathname.split('/').filter(Boolean)[0];
+                    return id ? `https://www.youtube.com/embed/${id}` : url;
+                }
+
+                const parts = u.pathname.split('/').filter(Boolean);
+                if (parts[0] === 'embed' && parts[1]) return url; // already embed format
+                if (parts[0] === 'shorts' && parts[1]) return `https://www.youtube.com/embed/${parts[1]}`;
+                if (parts[0] === 'live' && parts[1]) return `https://www.youtube.com/embed/${parts[1]}`;
+                if (u.pathname === '/watch') {
+                    const id = u.searchParams.get('v');
+                    return id ? `https://www.youtube.com/embed/${id}` : url;
+                }
+                return url; // koi aur unexpected YouTube path, unchanged chhod do
+            } catch (e) {
+                return url; // invalid URL, jaisa hai waisa hi rehne do
+            }
+        }
+
         async function loadTutorials() {
             const container = document.getElementById('tutorialsListEl');
             container.classList.remove('placeholder-glow');
             container.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div></div>'; getEl('noTutorialsMsg').style.display='none';
             try {
-                const snap = await get(ref(db, 'tutorials'));
+                // PERF FIX: sirf pehle 50 tutorials fetch karo, poori list nahi — isse
+                // initial load fast hoga.
+                const snap = await get(query(ref(db, 'tutorials'), limitToFirst(50)));
                 if(!snap.exists()) { container.innerHTML=''; getEl('noTutorialsMsg').style.display='block'; return; }
                 container.innerHTML = '';
-                Object.values(snap.val()).forEach(t => { container.innerHTML += `<div class="glass-card mb-3 p-0 overflow-hidden"><div class="position-relative" style="padding-bottom:56.25%;"><iframe style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" src="${t.videoUrl}" allowfullscreen></iframe></div><div class="p-3"><h6 class="fw-bold m-0 text-main">${t.title || 'Tutorial'}</h6><p class="text-muted small mt-1 mb-0">${t.description || ''}</p></div></div>`; });
+                Object.values(snap.val()).forEach(t => { const embedUrl = toYouTubeEmbedUrl(t.videoUrl); container.innerHTML += `<div class="glass-card mb-3 p-0 overflow-hidden"><div class="position-relative" style="padding-bottom:56.25%;"><iframe style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" src="${embedUrl}" allowfullscreen></iframe></div><div class="p-3"><h6 class="fw-bold m-0 text-main">${t.title || 'Tutorial'}</h6><p class="text-muted small mt-1 mb-0">${t.description || ''}</p></div></div>`; });
             } catch(e) { container.innerHTML = ''; getEl('noTutorialsMsg').style.display='block'; }
         }
 
@@ -6743,7 +6813,8 @@ if(vipWarning) vipWarning.style.display = vip ? 'none' : 'block';
         // Current user ke private orders realtime fetch karne ka system
         function listenToMyOrders() {
             if(!currentUser || isMyOrdersListenerAttached) return;
-            const ordersRef = query(ref(db, 'shopOrders'), orderByChild('userId'), equalTo(currentUser.uid));
+            // PERF FIX: sirf last 50 orders laao, poori history nahi.
+            const ordersRef = query(ref(db, 'shopOrders'), orderByChild('userId'), equalTo(currentUser.uid), limitToLast(50));
             onValue(ordersRef, (snap) => {
                 userOrdersData = snap.val() || {};
                 if(currentSectionId === 'shop-section' && getEl('tabMyOrders').classList.contains('active')) {
