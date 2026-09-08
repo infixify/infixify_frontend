@@ -2230,32 +2230,38 @@
             let cached = null;
             try { cached = JSON.parse(localStorage.getItem(cacheKey) || 'null'); } catch(e) { cached = null; }
 
-            // 1. INSTANT RENDER: Agar data phone me save hai, toh Firebase ka wait kiye bina turant (0ms me) dikha do!
+            // 1. INSTANT RENDER: Agar data phone me hai, toh 0 second me turant screen par dikha do!
             if (cached && cached.data) {
                 callback(makeFakeSnapshot(cached.data));
             }
 
-            // 2. BACKGROUND SYNC: Ab chupchap background me check karo ki admin ne kuch naya toh nahi daala
+            // 2. BACKGROUND SYNC: Chupchap check karo ki admin ne kuch naya add kiya hai kya
             try {
-                const versions = await getContentVersions();
-                const serverVersion = versions[name] || 0;
-
-                // Agar admin ne kuch change nahi kiya hai, toh aage kuch mat karo
-                if (cached && cached.v === serverVersion) {
+                if (!cached) {
+                    // Agar first time open hai, toh fresh data laao
+                    const [snap, versions] = await Promise.all([get(ref(db, path)), getContentVersions()]);
+                    const serverVersion = versions[name] || 0;
+                    try { localStorage.setItem(cacheKey, JSON.stringify({ v: serverVersion, data: snap.val() })); } catch(e) {}
+                    callback(snap);
                     return;
                 }
 
-                // Agar naya update aaya hai (ya pehli baar load ho raha hai), tabhi Firebase se fetch karo
-                const snap = await get(ref(db, path));
-                try { localStorage.setItem(cacheKey, JSON.stringify({ v: serverVersion, data: snap.val() })); } catch(e) {}
-                
-                // Naya data aate hi screen ko refresh kar do
-                callback(snap);
+                // Agar cache pehle se dikh raha hai, toh sirf version compare karo
+                const versions = await getContentVersions();
+                const serverVersion = versions[name] || 0;
+
+                // Agar admin ne update push kiya hai, tabhi Firebase se heavy data download karo
+                if (cached.v !== serverVersion) {
+                    const snap = await get(ref(db, path));
+                    try { localStorage.setItem(cacheKey, JSON.stringify({ v: serverVersion, data: snap.val() })); } catch(e) {}
+                    callback(snap); // Naya data aate hi screen par live update kar do
+                }
             } catch(e) {
-                console.error(`[cache] ${name} load failed`, e);
+                console.error(`[cache] ${name} sync failed`, e);
                 if (!cached && onError) onError(e);
             }
         }
+        
 
         function listenToThemeSettings() {
             cachedLoad('themeSettings', 'themeSettings', (snap) => {
