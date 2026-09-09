@@ -3498,7 +3498,7 @@ else if(id==='reports-export-section') {
                     const mig = {};
                     if(SET.supportWa) mig[push(ref(rd,'settings/supportOptions')).key] = { name:'WhatsApp Support', icon:'bi-whatsapp', link:SET.supportWa, availableTime:'', description:'Chat with us on WhatsApp', order:0, active: SET.isWaActive!==false, createdAt:Date.now() };
                     if(SET.supportTg) mig[push(ref(rd,'settings/supportOptions')).key] = { name:'Telegram Support', icon:'bi-telegram', link:SET.supportTg, availableTime:'', description:'Join our Telegram support channel', order:1, active: SET.isTgActive!==false, createdAt:Date.now() };
-                    if(Object.keys(mig).length){ await update(ref(rd,'settings/supportOptions'), mig); CLR_CACHE('settings/supportOptions'); s = await fetchWithCache('settings/supportOptions'); }
+                    if(Object.keys(mig).length){ await update(ref(rd,'settings/supportOptions'), mig); CLR_CACHE('settings'); s = await fetchWithCache('settings/supportOptions'); }
                 }
                 let h='';
                 if(s.exists()){
@@ -3527,7 +3527,7 @@ else if(id==='reports-export-section') {
             if(!id) d.createdAt = Date.now();
             if(id) await update(ref(rd,`settings/supportOptions/${id}`), d); else await push(ref(rd,'settings/supportOptions'), d);
             LOG_ACT('staff', id?'Edited Support Option':'Added Support Option', d.name);
-            CLR_CACHE('settings/supportOptions'); TS('Support Option Saved'); ML['supportOptionModal'].hide(); await RX_SUP();
+            CLR_CACHE('settings'); TS('Support Option Saved'); ML['supportOptionModal'].hide(); await RX_SUP();
         }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
         // ================= NAYA: SUPPORT TICKETS (Report Hacker / Refund) =================
@@ -5185,7 +5185,7 @@ if(E('spWindow')) E('spWindow').onchange = () => RX_SP();
                 if(a==='add-promo') { if(!CHK_P('promo_mgt')) return TS('Unauthorized','error'); E('fmPromo').reset(); E('prId').value=''; ML['promoModal'].show(); }
                 if(a==='add-support-option') { if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); E('fmSupportOption').reset(); E('supId').value=''; E('supModalTitle').textContent='Add Support Option'; E('supIconPreset').value='bi-headset'; E('supIconCustom').style.display='none'; UPDATE_SUP_ICON_PREVIEW('bi-headset'); ML['supportOptionModal'].show(); }
                 if(a==='e-sup'){ if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); E('fmSupportOption').reset(); const t=(await get(ref(rd,`settings/supportOptions/${id}`))).val()||{}; E('supId').value=id; E('supModalTitle').textContent='Edit Support Option'; E('supName').value=t.name||''; E('supLink').value=t.link||''; E('supTime').value=t.availableTime||''; E('supDesc').value=t.description||''; E('supOrder').value=t.order||0; E('supActive').checked=t.active!==false; const presets=[...E('supIconPreset').options].map(o=>o.value); const icn=t.icon||'bi-headset'; if(presets.includes(icn)){ E('supIconPreset').value=icn; E('supIconCustom').style.display='none'; } else { E('supIconPreset').value='custom'; E('supIconCustom').style.display='block'; E('supIconCustom').value=icn; } UPDATE_SUP_ICON_PREVIEW(icn); ML['supportOptionModal'].show(); }
-                if(a==='d-sup'){ if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); if(!confirm('Delete this support option? Users will no longer see this tile.')) return; await remove(ref(rd,`settings/supportOptions/${id}`)); LOG_ACT('staff','Deleted Support Option', id); CLR_CACHE('settings/supportOptions'); TS('Support Option Deleted'); await RX_SUP(); }
+                if(a==='d-sup'){ if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); if(!confirm('Delete this support option? Users will no longer see this tile.')) return; await remove(ref(rd,`settings/supportOptions/${id}`)); LOG_ACT('staff','Deleted Support Option', id); CLR_CACHE('settings'); TS('Support Option Deleted'); await RX_SUP(); }
                 if(a==='add-faq') { if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); E('fmAiFaq').reset(); E('faqId').value=''; E('faqModalTitle').textContent='Add FAQ'; E('faqActive').checked=true; ML['aiFaqModal'].show(); }
                 if(a==='e-faq'){ if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); E('fmAiFaq').reset(); const t=(await get(ref(rd,`aiFaqs/${id}`))).val()||{}; E('faqId').value=id; E('faqModalTitle').textContent='Edit FAQ'; E('faqQuestion').value=t.question||''; E('faqAnswer').value=t.answer||''; E('faqOrder').value=t.order||0; E('faqActive').checked=t.active!==false; ML['aiFaqModal'].show(); }
                 if(a==='d-faq'){ if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); if(!confirm('Delete this FAQ? The AI will no longer use it to answer users.')) return; await remove(ref(rd,`aiFaqs/${id}`)); LOG_ACT('staff','Deleted AI FAQ', id); CLR_CACHE('aiFaqs'); TS('FAQ Deleted'); await RX_FAQ(); }
