@@ -1504,6 +1504,21 @@
                 <h2 class="fw-bold mb-2 mt-2" data-i18n="support">Support</h2>
             </div>
             <div class="px-2" id="supportLinksContainer"></div>
+
+            <!-- NAYA: AI Support tile ab static HTML hai, JS render/settings-load pe depend nahi karta,
+                 isliye ye kabhi gayab nahi hogi chahe supportOptions load ho ya na ho -->
+            <div class="px-2">
+                <div class="support-option-tile ai-support-tile" id="aiSupportTile">
+                    <div class="support-option-icon"><i class="bi bi-robot"></i></div>
+                    <div class="support-option-body">
+                        <div class="support-option-name">AI Support</div>
+                        <div class="support-option-desc">Get instant answers from our AI assistant</div>
+                        <span class="support-option-time"><i class="bi bi-lightning-charge-fill"></i> Available 24/7</span>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted mt-2"></i>
+                </div>
+            </div>
+
             <p id="noSupportLinksMsg" class="text-center text-muted small mt-4" style="display:none;">Support options are currently unavailable.</p>
 
             <!-- NAYA: Evidence-based support tickets — Report Hacker + Refund only -->
@@ -3500,6 +3515,7 @@ if (themeContainer) themeContainer.style.display = 'block';
                 if(snap.exists()) { appSettings = Object.assign(appSettings, snap.val()); } 
                 else { appSettings = { minWithdraw: 50, signupBonus: 0, referralBonus: 5, referralEnabled: true, paymentGateway: 'manual', appName: 'INFIXIFY' }; }
                 window.isSettingsLoaded = true;
+                window.appSettings = appSettings; // debug ke liye console se access ho sake isliye
                 updateAppUIWithSettings();
                 if(currentUser && userProfile) { updateUIForUser(); setupReferralSystem(); }
             }, (err) => {
@@ -3539,48 +3555,54 @@ if (themeContainer) themeContainer.style.display = 'block';
                 </div>`).join('');
         }
         function loadSupportOptions() {
-            const container = document.getElementById('supportLinksContainer');
-            const noMsg = document.getElementById('noSupportLinksMsg');
-            if(!container) return;
-            if(!window.isSettingsLoaded) { if(!container.dataset.skeletonShown){ container.innerHTML = supportOptionsSkeleton(); container.dataset.skeletonShown = '1'; } if(noMsg) noMsg.style.display = 'none'; return; }
-            const opts = Object.entries(appSettings.supportOptions || {}).filter(([, o]) => o.active !== false);
-            opts.sort((a, b) => (Number(a[1].order) || 0) - (Number(b[1].order) || 0) || (Number(a[1].createdAt) || 0) - (Number(b[1].createdAt) || 0));
-            const sig = JSON.stringify(opts.map(([id, o]) => [id, o.name, o.icon, o.link, o.description, o.availableTime, o.order]));
-            if(sig === lastSupportOptionsSig) return; // data nahi badla, DOM ko dobara build karke flicker mat do
-            lastSupportOptionsSig = sig;
-            container.dataset.skeletonShown = '';
-            if(noMsg) noMsg.style.display = 'none';
-            // NAYA: "AI Support" tile — admin ke jitne bhi support options ho ya na ho,
-            // yeh hamesha sab se aakhri (last) tile ke roop me dikhta hai, aur thoda
-            // alag (gradient/glow + "AI" badge) style hota hai taaki alag pehchana jaye.
-            // Click karne par seedha "Ask Queries to AI" chat section khulta hai.
-            const aiTile = `
-                <div class="support-option-tile ai-support-tile" id="aiSupportTile" style="animation-delay:${Math.min(opts.length * 0.06, 0.3)}s">
-                    <div class="support-option-icon"><i class="bi bi-robot"></i></div>
-                    <div class="support-option-body">
-                        <div class="support-option-name">AI Support</div>
-                        <div class="support-option-desc">Get instant answers from our AI assistant</div>
-                        <span class="support-option-time"><i class="bi bi-lightning-charge-fill"></i> Available 24/7</span>
-                    </div>
-                    <i class="bi bi-chevron-right text-muted mt-2"></i>
-                </div>`;
-            container.innerHTML = opts.map(([id, o], i) => `
-                <div class="support-option-tile" style="animation-delay:${Math.min(i * 0.06, 0.3)}s" data-link="${escapeVIP(o.link || '')}">
-                    <div class="support-option-icon"><i class="bi ${o.icon || 'bi-headset'}"></i></div>
-                    <div class="support-option-body">
-                        <div class="support-option-name">${escapeVIP(o.name || 'Support')}</div>
-                        ${o.description ? `<div class="support-option-desc">${escapeVIP(o.description)}</div>` : ''}
-                        ${o.availableTime ? `<span class="support-option-time"><i class="bi bi-clock-history"></i> ${escapeVIP(o.availableTime)}</span>` : ''}
-                    </div>
-                    <i class="bi bi-chevron-right text-muted mt-2"></i>
-                </div>`).join('') + aiTile;
-            container.querySelectorAll('.support-option-tile').forEach(tile => {
-                if(tile.id === 'aiSupportTile') return;
-                tile.onclick = () => { const link = tile.dataset.link; if(link) window.open(link, '_blank'); };
-            });
-            const aiTileEl = document.getElementById('aiSupportTile');
-            if(aiTileEl) aiTileEl.onclick = () => { showSection('ai-chat-section', 'support-section'); listenAiChat(); renderAiChat(lastAiChatSnap); };
+            try {
+                const container = document.getElementById('supportLinksContainer');
+                const noMsg = document.getElementById('noSupportLinksMsg');
+                if(!container) { console.error('loadSupportOptions: supportLinksContainer not found in DOM'); return; }
+                if(!window.isSettingsLoaded) { if(!container.dataset.skeletonShown){ container.innerHTML = supportOptionsSkeleton(); container.dataset.skeletonShown = '1'; } if(noMsg) noMsg.style.display = 'none'; return; }
+
+                const opts = Object.entries(appSettings.supportOptions || {}).filter(([, o]) => o.active !== false);
+                opts.sort((a, b) => (Number(a[1].order) || 0) - (Number(b[1].order) || 0) || (Number(a[1].createdAt) || 0) - (Number(b[1].createdAt) || 0));
+
+                const sig = JSON.stringify(opts.map(([id, o]) => [id, o.name, o.icon, o.link, o.description, o.availableTime, o.order]));
+                if(sig === lastSupportOptionsSig) return; // data nahi badla, DOM ko dobara build karke flicker mat do
+                lastSupportOptionsSig = sig;
+                container.dataset.skeletonShown = '';
+
+                if(opts.length === 0) {
+                    container.innerHTML = '';
+                    if(noMsg) noMsg.style.display = 'block';
+                    return;
+                }
+                if(noMsg) noMsg.style.display = 'none';
+
+                container.innerHTML = opts.map(([id, o], i) => `
+                    <div class="support-option-tile" style="animation-delay:${Math.min(i * 0.06, 0.3)}s" data-link="${escapeVIP(o.link || '')}">
+                        <div class="support-option-icon"><i class="bi ${o.icon || 'bi-headset'}"></i></div>
+                        <div class="support-option-body">
+                            <div class="support-option-name">${escapeVIP(o.name || 'Support')}</div>
+                            ${o.description ? `<div class="support-option-desc">${escapeVIP(o.description)}</div>` : ''}
+                            ${o.availableTime ? `<span class="support-option-time"><i class="bi bi-clock-history"></i> ${escapeVIP(o.availableTime)}</span>` : ''}
+                        </div>
+                        <i class="bi bi-chevron-right text-muted mt-2"></i>
+                    </div>`).join('');
+
+                container.querySelectorAll('.support-option-tile').forEach(tile => {
+                    tile.onclick = () => { const link = tile.dataset.link; if(link) window.open(link, '_blank'); };
+                });
+            } catch(e) {
+                console.error('loadSupportOptions failed:', e);
+            }
         }
+
+        // NAYA: AI Support tile ab static HTML mein hai (settings load hone ka wait nahi karti),
+        // isliye uska click handler seedha yahan, page load ke turant baad, attach ho jata hai.
+        document.addEventListener('DOMContentLoaded', function() {
+            const aiTileEl = document.getElementById('aiSupportTile');
+            if(aiTileEl) {
+                aiTileEl.onclick = () => { showSection('ai-chat-section', 'support-section'); listenAiChat(); renderAiChat(lastAiChatSnap); };
+            }
+        });
 
         // ================= NAYA: SUPPORT TICKETS (Report Hacker / Refund) =================
         const TICKET_BACKEND = 'https://infixify-push.onrender.com';
