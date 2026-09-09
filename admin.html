@@ -4045,44 +4045,53 @@ else if(id==='reports-export-section') {
                 }
 
                 // --- Notify joined players when Room ID / Password is updated on an existing match ---
-if (id && tDat && d.showIdPass && d.roomId && d.roomPassword && (d.roomId !== (tDat.roomId || '') || d.roomPassword !== (tDat.roomPassword || '')) && tDat.registeredPlayers) {
-    
-    // 1. In-App Notification (Purana Code)
-    for (const uid of Object.keys(tDat.registeredPlayers)) {
-        const idPassNotifKey = push(ref(rd, `users/${uid}/notifications`)).key;
-        bulkUpdates[`users/${uid}/notifications/${idPassNotifKey}`] = { title: `ID PASS UPDATED FOR MATCH "${d.name}"`, message: `ID - "${d.roomId}" PASS - "${d.roomPassword}"`, type: "info", read: false, timestamp: Date.now() };
-    }
+                // NAYA: client-side duplicate in-app notification write hata di gayi hai — backend
+                // (/send-idpass-push) ab khud reliably, har player ke liye ALAG-ALAG write se
+                // (ek bhi player fail ho to baaki par asar nahi) in-app notification save karta
+                // hai. Yahan sirf backend ko trigger karte hain — koi bhi bulkUpdates path
+                // yahan add nahi hota, isliye match ka save (neeche) ab kabhi is wajah se fail
+                // nahi hoga ki kisi ek (stale/deleted) player ka notification-write reject hua.
+                const shouldNotifyIdPass = id && tDat && d.showIdPass && d.roomId && d.roomPassword && (d.roomId !== (tDat.roomId || '') || d.roomPassword !== (tDat.roomPassword || '')) && tDat.registeredPlayers;
+                if (shouldNotifyIdPass) {
+                    // SECURITY FIX: pehle yahan ek static "x-push-secret" hardcoded tha, jo
+                    // is file (client-side, publicly downloadable) me hi visible tha —
+                    // View Source karte hi koi bhi wo secret nikal sakta tha. Ab route apna
+                    // real Firebase login (admin/staff) check karta hai, isliye yahan koi
+                    // secret rakhne ki zaroorat nahi — sirf apna current ID token bhej dete hain.
+                    au.currentUser?.getIdToken().then(idToken => {
+                        fetch("https://infixify-push.onrender.com/send-idpass-push", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Authorization": "Bearer " + idToken
+                            },
+                            body: JSON.stringify({
+                                tournamentId: id
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => console.log("Push Notification Sent:", data))
+                        .catch(error => console.error("Push Error:", error));
+                    }).catch(error => console.error("Push auth error:", error));
+                }
 
-    // 2. Mobile Push Notification (Naya Render Server Code)
-    // SECURITY FIX: pehle yahan ek static "x-push-secret" hardcoded tha, jo
-    // is file (client-side, publicly downloadable) me hi visible tha —
-    // View Source karte hi koi bhi wo secret nikal sakta tha. Ab route apna
-    // real Firebase login (admin/staff) check karta hai, isliye yahan koi
-    // secret rakhne ki zaroorat nahi — sirf apna current ID token bhej dete hain.
-    au.currentUser?.getIdToken().then(idToken => {
-        fetch("https://infixify-push.onrender.com/send-idpass-push", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + idToken
-            },
-            body: JSON.stringify({
-                tournamentId: id
-            })
-        })
-        .then(response => response.json())
-        .then(data => console.log("Push Notification Sent:", data))
-        .catch(error => console.error("Push Error:", error));
-    }).catch(error => console.error("Push auth error:", error));
-}
+                // NAYA: MATCH SAVE ab hamesha apne ALAG, chhote update() call se hota hai —
+                // refund-batch (bulkUpdates) se kabhi merge nahi hota. Isse ID/Pass ya koi bhi
+                // match field kisi doosre (potentially bade, multi-player) write ki wajah se
+                // fail hoke reject nahi hoga.
+                if (id) { await update(ref(rd, `tournaments/${id}`), d); } else { await push(ref(rd, 'tournaments'), d); }
 
+                // Refund-batch (agar cancel+refund kiya ho) ab match save ke BAAD, alag se,
+                // best-effort try hota hai — isme kisi ek player ka write fail ho (jaise stale
+                // uid) to sirf wahi refund-batch fail hoga, match ka apna save (upar) already
+                // ho chuka hoga, kabhi rukega nahi.
                 if (Object.keys(bulkUpdates).length > 0) {
-                    for (const [k, v] of Object.entries(d)) {
-                        bulkUpdates[`tournaments/${id}/${k}`] = v;
+                    try {
+                        await update(ref(rd), bulkUpdates);
+                    } catch (refundErr) {
+                        console.error('Refund batch me issue aaya:', refundErr);
+                        TS('Match saved, but refund distribution had an issue — please verify manually.', 'warning');
                     }
-                    await update(ref(rd), bulkUpdates);
-                } else {
-                    if(id) await update(ref(rd,`tournaments/${id}`), d); else await push(ref(rd,'tournaments'), d); 
                 }
 
                 let logAction = id ? 'Edited Match' : 'Created Match';
