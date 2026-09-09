@@ -1310,6 +1310,20 @@
                     <button class="btn-premium" data-action="add-support-option"><i class="bi bi-plus-lg"></i> Add Support Option</button>
                 </div>
                 <div class="glass-card p-0 overflow-hidden"><div class="table-responsive"><table class="table table-glass mb-0"><thead><tr><th>Icon</th><th>Name</th><th>Description</th><th>Available Time</th><th>Order</th><th>Status</th><th>Action</th></tr></thead><tbody id="tbSupportOptions"></tbody></table></div></div>
+
+                <!-- NAYA: Static Support Tiles Visibility — WhatsApp/Telegram/Discord ab user.html mein
+                     hardcoded HTML tiles hain (render pipeline pe depend nahi karte), inhe individually
+                     show/hide karne ke liye simple flags settings/supportTilesVisibility mein save hote hain. -->
+                <div class="glass-card border-success mt-4" style="border-left: 6px solid var(--success);">
+                    <h5 class="fw-bold mb-3 pb-2 border-bottom border-glass"><i class="bi bi-eye-fill text-success me-2"></i> Static Support Tiles Visibility</h5>
+                    <p class="small text-muted mb-3">WhatsApp / Telegram / Discord tiles user app mein static hain (JS render pipeline pe depend nahi karte). Yahan se individually show/hide karo.</p>
+                    <div class="row g-3">
+                        <div class="col-md-4 col-6"><div class="form-check form-switch p-2 rounded" style="background:rgba(0,0,0,0.2);"><input class="form-check-input ms-1" type="checkbox" id="visTileWhatsapp" checked><label class="form-check-label fw-bold ms-2 text-white small"><i class="bi bi-whatsapp text-success me-1"></i>WhatsApp Tile</label></div></div>
+                        <div class="col-md-4 col-6"><div class="form-check form-switch p-2 rounded" style="background:rgba(0,0,0,0.2);"><input class="form-check-input ms-1" type="checkbox" id="visTileTelegram" checked><label class="form-check-label fw-bold ms-2 text-white small"><i class="bi bi-telegram text-info me-1"></i>Telegram Tile</label></div></div>
+                        <div class="col-md-4 col-6"><div class="form-check form-switch p-2 rounded" style="background:rgba(0,0,0,0.2);"><input class="form-check-input ms-1" type="checkbox" id="visTileDiscord" checked><label class="form-check-label fw-bold ms-2 text-white small"><i class="bi bi-discord" style="color:#5865F2;"></i> Discord Tile</label></div></div>
+                    </div>
+                    <button class="btn-premium mt-3" id="btnSaveSupportTilesVis"><i class="bi bi-save"></i> Save Tile Visibility</button>
+                </div>
             </section>
 
             <section id="ai-faq-section" class="section">
@@ -3516,7 +3530,23 @@ else if(id==='reports-export-section') {
                     });
                 } E('tbSupportOptions').innerHTML = h || `<tr><td colspan="7" class="text-center text-muted py-4">No Support Options Added Yet. Click "Add Support Option" to create one.</td></tr>`;
             } catch(e) { E('tbSupportOptions').innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error loading support options</td></tr>`; }
+
+            // NAYA: static WhatsApp/Telegram/Discord tiles ke visibility toggles ko
+            // current Firebase flags se sync karo (default: checked/true jab tak flag explicitly false na ho)
+            const tv = (SET && SET.supportTilesVisibility) || {};
+            E('visTileWhatsapp').checked = tv.whatsapp !== false;
+            E('visTileTelegram').checked = tv.telegram !== false;
+            E('visTileDiscord').checked = tv.discord !== false;
         };
+
+        E('btnSaveSupportTilesVis').onclick = () => A_EX(async () => {
+            if(!CHK_P('sup_mgt')) return TS('Unauthorized','error');
+            const d = { whatsapp: E('visTileWhatsapp').checked, telegram: E('visTileTelegram').checked, discord: E('visTileDiscord').checked };
+            await update(ref(rd, 'settings/supportTilesVisibility'), d);
+            SET.supportTilesVisibility = Object.assign(SET.supportTilesVisibility || {}, d);
+            LOG_ACT('staff', 'Updated Support Tiles Visibility', JSON.stringify(d));
+            CLR_CACHE('settings'); TS('Tile Visibility Saved');
+        }, E('btnSaveSupportTilesVis'));
 
         E('fmSupportOption').onsubmit = e => { e.preventDefault(); A_EX(async () => {
             if(!CHK_P('sup_mgt')) return TS('Unauthorized','error');

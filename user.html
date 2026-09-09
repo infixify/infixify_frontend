@@ -1519,6 +1519,39 @@
                 </div>
             </div>
 
+            <!-- NAYA: WhatsApp/Telegram/Discord tiles ab static HTML hain (AI Support tile ki tarah),
+                 loadSupportOptions() render pipeline pe depend nahi karte isliye Firebase read/render
+                 mein koi bhi issue ho, ye teeno tiles kabhi gayab nahi hongi. Sirf inki visibility
+                 (show/hide) settings/supportTilesVisibility flags se control hoti hai — see
+                 applySupportTilesVisibility() below. Links yahan hardcoded hain, apne actual
+                 WhatsApp/Telegram/Discord links se replace kar dena. -->
+            <div class="px-2">
+                <div class="support-option-tile" id="staticTileWhatsapp" data-link="https://wa.me/910000000000">
+                    <div class="support-option-icon"><i class="bi bi-whatsapp"></i></div>
+                    <div class="support-option-body">
+                        <div class="support-option-name">WhatsApp Support</div>
+                        <div class="support-option-desc">Chat with us on WhatsApp</div>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted mt-2"></i>
+                </div>
+                <div class="support-option-tile" id="staticTileTelegram" data-link="https://t.me/yourchannel">
+                    <div class="support-option-icon"><i class="bi bi-telegram"></i></div>
+                    <div class="support-option-body">
+                        <div class="support-option-name">Telegram Support</div>
+                        <div class="support-option-desc">Join our Telegram support channel</div>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted mt-2"></i>
+                </div>
+                <div class="support-option-tile" id="staticTileDiscord" data-link="https://discord.gg/yourinvite">
+                    <div class="support-option-icon"><i class="bi bi-discord"></i></div>
+                    <div class="support-option-body">
+                        <div class="support-option-name">Discord Support</div>
+                        <div class="support-option-desc">Join our Discord community</div>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted mt-2"></i>
+                </div>
+            </div>
+
             <p id="noSupportLinksMsg" class="text-center text-muted small mt-4" style="display:none;">Support options are currently unavailable.</p>
 
             <!-- NAYA: Evidence-based support tickets — Report Hacker + Refund only -->
@@ -3602,6 +3635,31 @@ if (themeContainer) themeContainer.style.display = 'block';
             if(aiTileEl) {
                 aiTileEl.onclick = () => { showSection('ai-chat-section', 'support-section'); listenAiChat(); renderAiChat(lastAiChatSnap); };
             }
+
+            // NAYA: WhatsApp/Telegram/Discord static tiles ke click handlers — seedha
+            // tile ke data-link attribute se link khol dete hain, koi render pipeline nahi.
+            ['staticTileWhatsapp', 'staticTileTelegram', 'staticTileDiscord'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.onclick = () => { const link = el.dataset.link; if(link) window.open(link, '_blank'); };
+            });
+        });
+
+        // NAYA: Static Support Tiles Visibility — simple onValue listener jo
+        // settings/supportTilesVisibility flags padhke sirf tile.style.display set karta hai.
+        // Koi complex render pipeline nahi, isliye loadSupportOptions() fail ho tab bhi ye chalta rahega.
+        // Fail-safe: jab tak Firebase se flag na aa jaye (ya flag missing/false na ho), tile visible rehti hai —
+        // taaki delay ki wajah se tile accidentally chhupi hui na rahe.
+        onValue(ref(db, 'settings/supportTilesVisibility'), (snap) => {
+            const v = snap.val() || {};
+            const map = { staticTileWhatsapp: 'whatsapp', staticTileTelegram: 'telegram', staticTileDiscord: 'discord' };
+            Object.keys(map).forEach(elId => {
+                const el = document.getElementById(elId);
+                if(!el) return;
+                el.style.display = (v[map[elId]] === false) ? 'none' : '';
+            });
+        }, (err) => {
+            console.error('supportTilesVisibility onValue error:', err);
+            // error ho jaaye to bhi tiles visible hi rehne do (fail-safe)
         });
 
         // ================= NAYA: SUPPORT TICKETS (Report Hacker / Refund) =================
