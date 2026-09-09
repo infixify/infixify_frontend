@@ -1503,7 +1503,6 @@
                 <i class="bi bi-headset glow-text" style="font-size: 4rem; color: var(--accent-purple);"></i>
                 <h2 class="fw-bold mb-2 mt-2" data-i18n="support">Support</h2>
             </div>
-            <div class="px-2" id="supportLinksContainer"></div>
 
             <!-- NAYA: AI Support tile ab static HTML hai, JS render/settings-load pe depend nahi karta,
                  isliye ye kabhi gayab nahi hogi chahe supportOptions load ho ya na ho -->
@@ -1538,7 +1537,7 @@
                     <div class="support-option-icon"><i class="bi bi-telegram"></i></div>
                     <div class="support-option-body">
                         <div class="support-option-name">Telegram Support</div>
-                        <div class="support-option-desc">Join our Telegram support channel</div>
+                        <div class="support-option-desc">Chat with us on telegram</div>
                     </div>
                     <i class="bi bi-chevron-right text-muted mt-2"></i>
                 </div>
@@ -1546,13 +1545,12 @@
                     <div class="support-option-icon"><i class="bi bi-discord"></i></div>
                     <div class="support-option-body">
                         <div class="support-option-name">Discord Support</div>
-                        <div class="support-option-desc">Join our Discord community</div>
+                        <div class="support-option-desc">This is discord community server. All staff and many players available here.</div>
                     </div>
                     <i class="bi bi-chevron-right text-muted mt-2"></i>
                 </div>
             </div>
 
-            <p id="noSupportLinksMsg" class="text-center text-muted small mt-4" style="display:none;">Support options are currently unavailable.</p>
 
             <!-- NAYA: Evidence-based support tickets — Report Hacker + Refund only -->
             <div class="px-2 mt-3">
@@ -3569,64 +3567,9 @@ if (themeContainer) themeContainer.style.display = 'block';
             cachedLoad('modes', 'modes', (snap) => { allModes = snap.val() || {}; if(currentSectionId === 'modes-section' && currentTournamentGameId) loadModes(currentTournamentGameId); }, (err) => console.error('modes read failed:', err));
         }
 
-        // NAYA: Multiple Support Options — admin ne jitne bhi support channels
-        // (WhatsApp, Telegram, Call, Email, custom, etc.) add kiye hain, un sabko
-        // bade tile ke roop me dikhaya jata hai jisme icon, naam, description aur
-        // available time bhi show hota hai. Sketchware WebView me smooth rahe iske
-        // liye: skeleton loader (flash of empty/blank state nahi), staggered fade-in
-        // animation, aur same data dobara aane par unnecessary re-render skip karta hai.
-        let lastSupportOptionsSig = null;
-        function supportOptionsSkeleton() {
-            return Array.from({length:3}).map(() => `
-                <div class="support-option-tile" style="animation:none; pointer-events:none;">
-                    <div class="support-option-icon placeholder-glow"><span class="placeholder" style="width:100%;height:100%;border-radius:16px;display:block;"></span></div>
-                    <div class="support-option-body placeholder-glow">
-                        <span class="placeholder" style="display:block; width:55%; height:14px; margin-bottom:8px;"></span>
-                        <span class="placeholder" style="display:block; width:85%; height:11px; margin-bottom:8px;"></span>
-                        <span class="placeholder" style="display:inline-block; width:90px; height:18px; border-radius:20px;"></span>
-                    </div>
-                </div>`).join('');
-        }
-        function loadSupportOptions() {
-            try {
-                const container = document.getElementById('supportLinksContainer');
-                const noMsg = document.getElementById('noSupportLinksMsg');
-                if(!container) { console.error('loadSupportOptions: supportLinksContainer not found in DOM'); return; }
-                if(!window.isSettingsLoaded) { if(!container.dataset.skeletonShown){ container.innerHTML = supportOptionsSkeleton(); container.dataset.skeletonShown = '1'; } if(noMsg) noMsg.style.display = 'none'; return; }
-
-                const opts = Object.entries(appSettings.supportOptions || {}).filter(([, o]) => o.active !== false);
-                opts.sort((a, b) => (Number(a[1].order) || 0) - (Number(b[1].order) || 0) || (Number(a[1].createdAt) || 0) - (Number(b[1].createdAt) || 0));
-
-                const sig = JSON.stringify(opts.map(([id, o]) => [id, o.name, o.icon, o.link, o.description, o.availableTime, o.order]));
-                if(sig === lastSupportOptionsSig) return; // data nahi badla, DOM ko dobara build karke flicker mat do
-                lastSupportOptionsSig = sig;
-                container.dataset.skeletonShown = '';
-
-                if(opts.length === 0) {
-                    container.innerHTML = '';
-                    if(noMsg) noMsg.style.display = 'block';
-                    return;
-                }
-                if(noMsg) noMsg.style.display = 'none';
-
-                container.innerHTML = opts.map(([id, o], i) => `
-                    <div class="support-option-tile" style="animation-delay:${Math.min(i * 0.06, 0.3)}s" data-link="${escapeVIP(o.link || '')}">
-                        <div class="support-option-icon"><i class="bi ${o.icon || 'bi-headset'}"></i></div>
-                        <div class="support-option-body">
-                            <div class="support-option-name">${escapeVIP(o.name || 'Support')}</div>
-                            ${o.description ? `<div class="support-option-desc">${escapeVIP(o.description)}</div>` : ''}
-                            ${o.availableTime ? `<span class="support-option-time"><i class="bi bi-clock-history"></i> ${escapeVIP(o.availableTime)}</span>` : ''}
-                        </div>
-                        <i class="bi bi-chevron-right text-muted mt-2"></i>
-                    </div>`).join('');
-
-                container.querySelectorAll('.support-option-tile').forEach(tile => {
-                    tile.onclick = () => { const link = tile.dataset.link; if(link) window.open(link, '_blank'); };
-                });
-            } catch(e) {
-                console.error('loadSupportOptions failed:', e);
-            }
-        }
+        // NAYA: Purana Multiple Support Options render pipeline (loadSupportOptions/skeleton) hata diya gaya —
+        // WhatsApp/Telegram/Discord ab support-section mein static HTML tiles hain (koi Firebase-driven
+        // render/skeleton pipeline nahi), sirf visibility aur link Firebase se aata hai (neeche onValue listener).
 
         // NAYA: AI Support tile ab static HTML mein hai (settings load hone ka wait nahi karti),
         // isliye uska click handler seedha yahan, page load ke turant baad, attach ho jata hai.
@@ -3644,22 +3587,38 @@ if (themeContainer) themeContainer.style.display = 'block';
             });
         });
 
-        // NAYA: Static Support Tiles Visibility — simple onValue listener jo
-        // settings/supportTilesVisibility flags padhke sirf tile.style.display set karta hai.
-        // Koi complex render pipeline nahi, isliye loadSupportOptions() fail ho tab bhi ye chalta rahega.
-        // Fail-safe: jab tak Firebase se flag na aa jaye (ya flag missing/false na ho), tile visible rehti hai —
-        // taaki delay ki wajah se tile accidentally chhupi hui na rahe.
+        // NAYA: Static Support Tiles Visibility + Links — do simple onValue listeners jo
+        // settings/supportTilesVisibility (show/hide) aur settings/supportTilesLinks (editable link)
+        // flags padhke sirf tile.style.display / tile.dataset.link set karte hain.
+        // Koi complex render pipeline nahi — bas ek field read karke ek attribute set karna.
+        // Fail-safe (visibility): jab tak Firebase se flag na aa jaye (ya flag missing/false na ho),
+        // tile visible rehti hai — taaki delay ki wajah se tile accidentally chhupi hui na rahe.
+        // Fail-safe (links): jab tak Firebase se link na aaye, HTML mein diya hardcoded default link hi rehta hai.
+        const SUPPORT_TILE_KEY_MAP = { staticTileWhatsapp: 'whatsapp', staticTileTelegram: 'telegram', staticTileDiscord: 'discord' };
+
         onValue(ref(db, 'settings/supportTilesVisibility'), (snap) => {
             const v = snap.val() || {};
-            const map = { staticTileWhatsapp: 'whatsapp', staticTileTelegram: 'telegram', staticTileDiscord: 'discord' };
-            Object.keys(map).forEach(elId => {
+            Object.keys(SUPPORT_TILE_KEY_MAP).forEach(elId => {
                 const el = document.getElementById(elId);
                 if(!el) return;
-                el.style.display = (v[map[elId]] === false) ? 'none' : '';
+                el.style.display = (v[SUPPORT_TILE_KEY_MAP[elId]] === false) ? 'none' : '';
             });
         }, (err) => {
             console.error('supportTilesVisibility onValue error:', err);
             // error ho jaaye to bhi tiles visible hi rehne do (fail-safe)
+        });
+
+        onValue(ref(db, 'settings/supportTilesLinks'), (snap) => {
+            const v = snap.val() || {};
+            Object.keys(SUPPORT_TILE_KEY_MAP).forEach(elId => {
+                const el = document.getElementById(elId);
+                if(!el) return;
+                const link = v[SUPPORT_TILE_KEY_MAP[elId]];
+                if(link) el.dataset.link = link; // Firebase se link mila to use karo, warna HTML wala default link hi rahega
+            });
+        }, (err) => {
+            console.error('supportTilesLinks onValue error:', err);
+            // error ho jaaye to bhi hardcoded default link tile pe kaam karta rahega (fail-safe)
         });
 
         // ================= NAYA: SUPPORT TICKETS (Report Hacker / Refund) =================
@@ -4272,7 +4231,8 @@ if (themeContainer) themeContainer.style.display = 'block';
             if(getEl('rechargeAutoLimitLabelEl').tagName) getEl('rechargeAutoLimitLabelEl').innerHTML = `Select Amount${isVipNow ? ' <span class="vip-title" style="font-size:0.75em;">VIP -20%</span>' : ''}`;
             if(typeof renderAutoPayTiles === 'function') renderAutoPayTiles();
 
-            loadSupportOptions();
+            // NAYA: purana loadSupportOptions() (dynamic Firebase-rendered tiles) hata diya gaya —
+            // WhatsApp/Telegram/Discord ab static tiles hain, unki visibility alag onValue listener se control hoti hai.
 
             const polDiv = document.getElementById('policiesAccordion');
             if(polDiv) {

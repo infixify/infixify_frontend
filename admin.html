@@ -1306,23 +1306,38 @@
             
             <section id="support-manager-section" class="section">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                    <div><h3 class="fw-bold m-0 text-success"><i class="bi bi-headset me-2"></i> Customer Support Options</h3><small class="text-muted">Add as many support channels as you want (WhatsApp, Telegram, Call, Email, etc). Each one shows as a tile in the user app's Support section.</small></div>
-                    <button class="btn-premium" data-action="add-support-option"><i class="bi bi-plus-lg"></i> Add Support Option</button>
+                    <div><h3 class="fw-bold m-0 text-success"><i class="bi bi-headset me-2"></i> Customer Support Options</h3><small class="text-muted">WhatsApp / Telegram / Discord tiles user app ke Support section mein dikhti hain. Yahan se link edit aur visibility control karo.</small></div>
                 </div>
-                <div class="glass-card p-0 overflow-hidden"><div class="table-responsive"><table class="table table-glass mb-0"><thead><tr><th>Icon</th><th>Name</th><th>Description</th><th>Available Time</th><th>Order</th><th>Status</th><th>Action</th></tr></thead><tbody id="tbSupportOptions"></tbody></table></div></div>
 
-                <!-- NAYA: Static Support Tiles Visibility — WhatsApp/Telegram/Discord ab user.html mein
-                     hardcoded HTML tiles hain (render pipeline pe depend nahi karte), inhe individually
-                     show/hide karne ke liye simple flags settings/supportTilesVisibility mein save hote hain. -->
-                <div class="glass-card border-success mt-4" style="border-left: 6px solid var(--success);">
-                    <h5 class="fw-bold mb-3 pb-2 border-bottom border-glass"><i class="bi bi-eye-fill text-success me-2"></i> Static Support Tiles Visibility</h5>
-                    <p class="small text-muted mb-3">WhatsApp / Telegram / Discord tiles user app mein static hain (JS render pipeline pe depend nahi karte). Yahan se individually show/hide karo.</p>
+                <!-- NAYA: Static Support Tiles — WhatsApp/Telegram/Discord ab user.html mein
+                     static HTML tiles hain (render pipeline pe depend nahi karte). Sirf link aur
+                     visibility (show/hide) Firebase se editable rakhe gaye hain, baaki (name/icon/desc)
+                     hardcoded hain. Purana dynamic "Add Support Option" system hata diya gaya hai. -->
+                <div class="glass-card border-success" style="border-left: 6px solid var(--success);">
+                    <h5 class="fw-bold mb-3 pb-2 border-bottom border-glass"><i class="bi bi-eye-fill text-success me-2"></i> Support Tiles — Link & Visibility</h5>
+                    <p class="small text-muted mb-3">Har tile ka link edit karo aur toggle se show/hide karo.</p>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label small text-success fw-bold"><i class="bi bi-whatsapp me-1"></i>WhatsApp Link</label>
+                            <input type="url" class="form-control" id="linkTileWhatsapp" placeholder="https://wa.me/91XXXXXXXXXX">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small text-info fw-bold"><i class="bi bi-telegram me-1"></i>Telegram Link</label>
+                            <input type="url" class="form-control" id="linkTileTelegram" placeholder="https://t.me/yourchannel">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold" style="color:#5865F2;"><i class="bi bi-discord me-1"></i>Discord Link</label>
+                            <input type="url" class="form-control" id="linkTileDiscord" placeholder="https://discord.gg/yourinvite">
+                        </div>
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-md-4 col-6"><div class="form-check form-switch p-2 rounded" style="background:rgba(0,0,0,0.2);"><input class="form-check-input ms-1" type="checkbox" id="visTileWhatsapp" checked><label class="form-check-label fw-bold ms-2 text-white small"><i class="bi bi-whatsapp text-success me-1"></i>WhatsApp Tile</label></div></div>
                         <div class="col-md-4 col-6"><div class="form-check form-switch p-2 rounded" style="background:rgba(0,0,0,0.2);"><input class="form-check-input ms-1" type="checkbox" id="visTileTelegram" checked><label class="form-check-label fw-bold ms-2 text-white small"><i class="bi bi-telegram text-info me-1"></i>Telegram Tile</label></div></div>
                         <div class="col-md-4 col-6"><div class="form-check form-switch p-2 rounded" style="background:rgba(0,0,0,0.2);"><input class="form-check-input ms-1" type="checkbox" id="visTileDiscord" checked><label class="form-check-label fw-bold ms-2 text-white small"><i class="bi bi-discord" style="color:#5865F2;"></i> Discord Tile</label></div></div>
                     </div>
-                    <button class="btn-premium mt-3" id="btnSaveSupportTilesVis"><i class="bi bi-save"></i> Save Tile Visibility</button>
+                    <button class="btn-premium mt-3" id="btnSaveSupportTilesVis"><i class="bi bi-save"></i> Save Links & Visibility</button>
                 </div>
             </section>
 
@@ -1724,37 +1739,7 @@
 
     <div class="modal fade" id="promoModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-warning"><div class="modal-header border-warning" style="background:rgba(245,158,11,0.1);"><h5 class="modal-title fw-bold text-warning">Add Promotional Banner</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="fmPromo"><input type="hidden" id="prId"><div class="mb-3"><label class="form-label text-primary">Promotion Title</label><input type="text" class="form-control" id="prTitle" required></div><div class="mb-3"><label class="form-label text-warning">Display Order (Lowest number = Top / shows first)</label><input type="number" class="form-control" id="prOrder" value="0" min="0"></div><div class="mb-3"><label class="form-label">Promotion Description</label><textarea class="form-control" id="prDesc" rows="2"></textarea></div><div class="mb-3"><label class="form-label text-warning">Slider Time (In Seconds)</label><input type="number" class="form-control" id="prTime" value="5" min="1" required></div><div class="mb-3"><label class="form-label text-info">Banner Image URL</label><input type="url" class="form-control" id="prU"></div><div class="mb-3"><label class="form-label text-warning">Or Upload Image File</label><input type="file" class="form-control p-2" id="prF" accept="image/*"></div><div class="mb-3"><label class="form-label text-success">Destination Link (Optional)</label><input type="url" class="form-control" id="prT"></div><div class="form-check form-switch mb-4 p-3 rounded" style="background:rgba(0,0,0,0.15); border:1px solid var(--border-glass);"><input class="form-check-input fs-4 m-0" type="checkbox" id="prS" checked><label class="form-check-label ms-3 fw-bold mt-1 text-white">Enable Banner Immediately</label></div><button type="submit" class="btn-premium w-100 py-3" style="background:var(--warning); color:#000;">Save Banner</button></form></div></div></div></div>
 
-    <div class="modal fade" id="supportOptionModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content border-success"><div class="modal-header border-success" style="background:rgba(16,185,129,0.1);"><h5 class="modal-title fw-bold text-success" id="supModalTitle">Add Support Option</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="fmSupportOption"><input type="hidden" id="supId">
-        <div class="mb-3"><label class="form-label text-success">Support Name</label><input type="text" class="form-control" id="supName" placeholder="e.g. WhatsApp Support" required></div>
-        <div class="mb-3"><label class="form-label text-info">Icon</label>
-            <div class="d-flex gap-2 align-items-center">
-                <select class="form-select" id="supIconPreset">
-                    <option value="bi-whatsapp">WhatsApp</option>
-                    <option value="bi-telegram">Telegram</option>
-                    <option value="bi-headset" selected>Headset / Call Center</option>
-                    <option value="bi-telephone-fill">Phone Call</option>
-                    <option value="bi-envelope-fill">Email</option>
-                    <option value="bi-chat-dots-fill">Live Chat</option>
-                    <option value="bi-instagram">Instagram</option>
-                    <option value="bi-facebook">Facebook</option>
-                    <option value="bi-twitter-x">X / Twitter</option>
-                    <option value="bi-discord">Discord</option>
-                    <option value="bi-question-circle-fill">FAQ / Help</option>
-                    <option value="bi-globe2">Website</option>
-                    <option value="custom">Custom Icon Class...</option>
-                </select>
-                <div class="d-flex align-items-center justify-content-center rounded-circle flex-shrink-0" id="supIconPreview" style="width:48px; height:48px; background:linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); transition: transform 0.2s ease;"><i class="bi bi-headset fs-5 text-white"></i></div>
-            </div>
-            <input type="text" class="form-control mt-2" id="supIconCustom" placeholder="e.g. bi-rocket-takeoff" style="display:none;">
-            <small class="text-muted">Pick a preset icon, or choose Custom and type any <a href="https://icons.getbootstrap.com/" target="_blank" class="text-info">Bootstrap Icon</a> class name.</small>
-        </div>
-        <div class="mb-3"><label class="form-label text-warning">Link / URL</label><input type="text" class="form-control" id="supLink" placeholder="https://wa.me/91xxxxxxxxxx" required></div>
-        <div class="mb-3"><label class="form-label">Available Time</label><input type="text" class="form-control" id="supTime" placeholder="e.g. 24/7 or Mon-Sat, 9 AM - 9 PM"></div>
-        <div class="mb-3"><label class="form-label">Short Description</label><textarea class="form-control" id="supDesc" rows="2" placeholder="What this support option is best used for"></textarea></div>
-        <div class="mb-3"><label class="form-label">Sort Order (Optional — lower shows first)</label><input type="number" class="form-control" id="supOrder" placeholder="0"></div>
-        <div class="form-check form-switch mb-4 p-3 rounded" style="background:rgba(0,0,0,0.15); border:1px solid var(--border-glass);"><input class="form-check-input fs-4 m-0" type="checkbox" id="supActive" checked><label class="form-check-label ms-3 fw-bold mt-1 text-white">Show in App</label></div>
-        <button type="submit" class="btn-premium w-100 py-3">Save Support Option</button>
-    </form></div></div></div></div>
+
 
     <div class="modal fade" id="aiFaqModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content border-info"><div class="modal-header border-info" style="background:rgba(14,165,233,0.1);"><h5 class="modal-title fw-bold text-info" id="faqModalTitle">Add FAQ</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="fmAiFaq"><input type="hidden" id="faqId">
         <div class="mb-3"><label class="form-label text-info">User's Question</label><textarea class="form-control" id="faqQuestion" rows="2" placeholder="e.g. How do I withdraw my winnings?" required></textarea><small class="text-muted">Write it the way a user would naturally ask. You don't need every possible phrasing — the AI understands variations and different languages/styles on its own.</small></div>
@@ -3493,72 +3478,34 @@ else if(id==='reports-export-section') {
 
         E('fmPromo').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('promo_mgt')) return TS('Unauthorized','error'); const id=E('prId').value, f=E('prF').files[0]; let u=E('prU').value; if(f) u = await P_IMG(f); const d = {title: E('prTitle').value, description: E('prDesc').value, sliderTime: Number(E('prTime').value), order: Number(E('prOrder').value)||0, imageUrl: u, link: E('prT').value, active: E('prS').checked}; if(!id) d.createdAt = Date.now(); if(id) await update(ref(rd,`promotions/${id}`), d); else await push(ref(rd,'promotions'), {...d, clicks:0}); LOG_ACT('staff', id?'Edited Promo':'Deployed Promo', d.title); CLR_CACHE('promotions'); TS('Promotion Saved'); ML['promoModal'].hide(); await RX_PR(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
-        // NAYA: Multiple Support Options Manager — user app ke "Support" section ke liye
-        // admin multiple support channels (WhatsApp, Telegram, Call, Email, custom, etc.)
-        // add/edit/remove kar sakta hai, har ek ka apna naam, icon, link, available time
-        // aur description hota hai jo user app me bade tile ke roop me dikhta hai.
-        const UPDATE_SUP_ICON_PREVIEW = (cls) => { const p=E('supIconPreview').querySelector('i'); if(!p) return; const clean = (cls||'bi-headset').trim(); p.className = 'bi ' + (clean.startsWith('bi-')?clean:('bi-'+clean)) + ' fs-5 text-white'; const box=E('supIconPreview'); if(box.style){ box.style.transform='scale(0.85)'; setTimeout(()=>{ box.style.transform='scale(1)'; }, 120); } };
-        E('supIconPreset').onchange = () => { const v=E('supIconPreset').value; if(v==='custom'){ E('supIconCustom').style.display='block'; UPDATE_SUP_ICON_PREVIEW(E('supIconCustom').value||'bi-headset'); } else { E('supIconCustom').style.display='none'; UPDATE_SUP_ICON_PREVIEW(v); } };
-        E('supIconCustom').oninput = () => { if(E('supIconCustom').value) UPDATE_SUP_ICON_PREVIEW(E('supIconCustom').value); };
-
+        // NAYA: Static Support Tiles (WhatsApp/Telegram/Discord) — link + visibility manage karta hai.
+        // Purana "Multiple Support Options" dynamic table/modal system hata diya gaya hai
+        // (name/icon/description ab user.html mein hardcoded hain, static tiles ki tarah).
         const RX_SUP = async () => {
-            if(!PAGE_CACHE['settings/supportOptions']) E('tbSupportOptions').innerHTML=PHO(7);
-            try {
-                let s = await fetchWithCache('settings/supportOptions');
-                // ONE-TIME MIGRATION: agar purana single WhatsApp/Telegram support tha aur
-                // naya multiple-support list abhi khali hai, to use automatically 2 tiles me convert kardo
-                // taaki live support links achanak app se gayab na ho jayein.
-                if(!s.exists() && SET && (SET.supportWa || SET.supportTg)){
-                    const mig = {};
-                    if(SET.supportWa) mig[push(ref(rd,'settings/supportOptions')).key] = { name:'WhatsApp Support', icon:'bi-whatsapp', link:SET.supportWa, availableTime:'', description:'Chat with us on WhatsApp', order:0, active: SET.isWaActive!==false, createdAt:Date.now() };
-                    if(SET.supportTg) mig[push(ref(rd,'settings/supportOptions')).key] = { name:'Telegram Support', icon:'bi-telegram', link:SET.supportTg, availableTime:'', description:'Join our Telegram support channel', order:1, active: SET.isTgActive!==false, createdAt:Date.now() };
-                    if(Object.keys(mig).length){ await update(ref(rd,'settings/supportOptions'), mig); CLR_CACHE('settings'); s = await fetchWithCache('settings/supportOptions'); }
-                }
-                let h='';
-                if(s.exists()){
-                    const a=[]; s.forEach(c => { a.push({id:c.key,...c.val()}); });
-                    a.sort((x,y) => (Number(x.order)||0) - (Number(y.order)||0) || (Number(x.createdAt)||0) - (Number(y.createdAt)||0)).forEach(t => {
-                        h+=`<tr>
-                            <td><div class="d-flex align-items-center justify-content-center rounded-circle" style="width:42px;height:42px; background:linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));"><i class="bi ${t.icon||'bi-headset'} text-white fs-5"></i></div></td>
-                            <td><span class="fw-bold">${t.name||'Untitled'}</span></td>
-                            <td><small class="text-muted text-truncate d-inline-block" style="max-width:220px;">${t.description||'—'}</small></td>
-                            <td><small class="text-info">${t.availableTime||'—'}</small></td>
-                            <td class="text-center"><span class="badge bg-dark border border-secondary">${Number(t.order)||0}</span></td>
-                            <td><span class="badge-premium badge-${t.active!==false?'success':'danger'}">${t.active!==false?'Active':'Hidden'}</span></td>
-                            <td><button class="btn btn-sm btn-outline-warning me-2 py-1" data-action="e-sup" data-id="${t.id}"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger py-1" data-action="d-sup" data-id="${t.id}"><i class="bi bi-trash"></i></button></td>
-                        </tr>`;
-                    });
-                } E('tbSupportOptions').innerHTML = h || `<tr><td colspan="7" class="text-center text-muted py-4">No Support Options Added Yet. Click "Add Support Option" to create one.</td></tr>`;
-            } catch(e) { E('tbSupportOptions').innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4">Error loading support options</td></tr>`; }
-
-            // NAYA: static WhatsApp/Telegram/Discord tiles ke visibility toggles ko
-            // current Firebase flags se sync karo (default: checked/true jab tak flag explicitly false na ho)
+            // static WhatsApp/Telegram/Discord tiles ke link + visibility fields ko
+            // current Firebase flags se sync karo (default: visible/true jab tak flag explicitly false na ho)
             const tv = (SET && SET.supportTilesVisibility) || {};
             E('visTileWhatsapp').checked = tv.whatsapp !== false;
             E('visTileTelegram').checked = tv.telegram !== false;
             E('visTileDiscord').checked = tv.discord !== false;
+
+            const tl = (SET && SET.supportTilesLinks) || {};
+            E('linkTileWhatsapp').value = tl.whatsapp || '';
+            E('linkTileTelegram').value = tl.telegram || '';
+            E('linkTileDiscord').value = tl.discord || '';
         };
 
         E('btnSaveSupportTilesVis').onclick = () => A_EX(async () => {
             if(!CHK_P('sup_mgt')) return TS('Unauthorized','error');
-            const d = { whatsapp: E('visTileWhatsapp').checked, telegram: E('visTileTelegram').checked, discord: E('visTileDiscord').checked };
-            await update(ref(rd, 'settings/supportTilesVisibility'), d);
-            SET.supportTilesVisibility = Object.assign(SET.supportTilesVisibility || {}, d);
-            LOG_ACT('staff', 'Updated Support Tiles Visibility', JSON.stringify(d));
-            CLR_CACHE('settings'); TS('Tile Visibility Saved');
+            const vis = { whatsapp: E('visTileWhatsapp').checked, telegram: E('visTileTelegram').checked, discord: E('visTileDiscord').checked };
+            const links = { whatsapp: E('linkTileWhatsapp').value.trim(), telegram: E('linkTileTelegram').value.trim(), discord: E('linkTileDiscord').value.trim() };
+            await update(ref(rd, 'settings/supportTilesVisibility'), vis);
+            await update(ref(rd, 'settings/supportTilesLinks'), links);
+            SET.supportTilesVisibility = Object.assign(SET.supportTilesVisibility || {}, vis);
+            SET.supportTilesLinks = Object.assign(SET.supportTilesLinks || {}, links);
+            LOG_ACT('staff', 'Updated Support Tiles Links & Visibility', JSON.stringify({vis, links}));
+            CLR_CACHE('settings'); TS('Links & Visibility Saved');
         }, E('btnSaveSupportTilesVis'));
-
-        E('fmSupportOption').onsubmit = e => { e.preventDefault(); A_EX(async () => {
-            if(!CHK_P('sup_mgt')) return TS('Unauthorized','error');
-            const id=E('supId').value;
-            let iconVal = E('supIconPreset').value==='custom' ? (E('supIconCustom').value.trim() || 'bi-headset') : E('supIconPreset').value;
-            if(!iconVal.startsWith('bi-')) iconVal = 'bi-'+iconVal;
-            const d = { name: E('supName').value.trim(), icon: iconVal, link: E('supLink').value.trim(), availableTime: E('supTime').value.trim(), description: E('supDesc').value.trim(), order: Number(E('supOrder').value)||0, active: E('supActive').checked };
-            if(!id) d.createdAt = Date.now();
-            if(id) await update(ref(rd,`settings/supportOptions/${id}`), d); else await push(ref(rd,'settings/supportOptions'), d);
-            LOG_ACT('staff', id?'Edited Support Option':'Added Support Option', d.name);
-            CLR_CACHE('settings'); TS('Support Option Saved'); ML['supportOptionModal'].hide(); await RX_SUP();
-        }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
         // ================= NAYA: SUPPORT TICKETS (Report Hacker / Refund) =================
         const TICKET_BACKEND = 'https://infixify-push.onrender.com';
@@ -5213,9 +5160,7 @@ if(E('spWindow')) E('spWindow').onchange = () => RX_SP();
                 if(a==='add-rule-preset') { if(!CHK_P('match_add') && !CHK_P('match_edit')) return TS('Unauthorized','error'); E('fmRulePreset').reset(); E('rpId').value=''; ML['rulePresetModal'].show(); }
                 if(a==='add-banner-preset') { if(!CHK_P('match_add') && !CHK_P('match_edit')) return TS('Unauthorized','error'); E('fmBannerPreset').reset(); E('bpId').value=''; ML['bannerPresetModal'].show(); }
                 if(a==='add-promo') { if(!CHK_P('promo_mgt')) return TS('Unauthorized','error'); E('fmPromo').reset(); E('prId').value=''; ML['promoModal'].show(); }
-                if(a==='add-support-option') { if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); E('fmSupportOption').reset(); E('supId').value=''; E('supModalTitle').textContent='Add Support Option'; E('supIconPreset').value='bi-headset'; E('supIconCustom').style.display='none'; UPDATE_SUP_ICON_PREVIEW('bi-headset'); ML['supportOptionModal'].show(); }
-                if(a==='e-sup'){ if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); E('fmSupportOption').reset(); const t=(await get(ref(rd,`settings/supportOptions/${id}`))).val()||{}; E('supId').value=id; E('supModalTitle').textContent='Edit Support Option'; E('supName').value=t.name||''; E('supLink').value=t.link||''; E('supTime').value=t.availableTime||''; E('supDesc').value=t.description||''; E('supOrder').value=t.order||0; E('supActive').checked=t.active!==false; const presets=[...E('supIconPreset').options].map(o=>o.value); const icn=t.icon||'bi-headset'; if(presets.includes(icn)){ E('supIconPreset').value=icn; E('supIconCustom').style.display='none'; } else { E('supIconPreset').value='custom'; E('supIconCustom').style.display='block'; E('supIconCustom').value=icn; } UPDATE_SUP_ICON_PREVIEW(icn); ML['supportOptionModal'].show(); }
-                if(a==='d-sup'){ if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); if(!confirm('Delete this support option? Users will no longer see this tile.')) return; await remove(ref(rd,`settings/supportOptions/${id}`)); LOG_ACT('staff','Deleted Support Option', id); CLR_CACHE('settings'); TS('Support Option Deleted'); await RX_SUP(); }
+
                 if(a==='add-faq') { if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); E('fmAiFaq').reset(); E('faqId').value=''; E('faqModalTitle').textContent='Add FAQ'; E('faqActive').checked=true; ML['aiFaqModal'].show(); }
                 if(a==='e-faq'){ if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); E('fmAiFaq').reset(); const t=(await get(ref(rd,`aiFaqs/${id}`))).val()||{}; E('faqId').value=id; E('faqModalTitle').textContent='Edit FAQ'; E('faqQuestion').value=t.question||''; E('faqAnswer').value=t.answer||''; E('faqOrder').value=t.order||0; E('faqActive').checked=t.active!==false; ML['aiFaqModal'].show(); }
                 if(a==='d-faq'){ if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); if(!confirm('Delete this FAQ? The AI will no longer use it to answer users.')) return; await remove(ref(rd,`aiFaqs/${id}`)); LOG_ACT('staff','Deleted AI FAQ', id); CLR_CACHE('aiFaqs'); TS('FAQ Deleted'); await RX_FAQ(); }
