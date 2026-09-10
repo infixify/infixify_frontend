@@ -4007,28 +4007,31 @@ else if(id==='reports-export-section') {
 
                     const ef = Number(E('trEf').value) || tDat.entryFee || 0;
                     if (ef > 0 && tDat.registeredPlayers) {
-                        for (const [uid, pDat] of Object.entries(tDat.registeredPlayers)) {
-                            // Ek hi account se multiple entries (squad/duo me kai slots book karna)
-                            // ho sakti hain — wahi formula jo baaki jagah is file me booked-slots
-                            // count karne ke liye use hota hai (p.slots.length, ya single p.slot).
-                            const entryCount = pDat.slots ? pDat.slots.length : (pDat.slot ? 1 : 1);
-                            const refundAmt = ef * entryCount;
-                            const uSnap = await get(ref(rd, `users/${uid}`));
-                            if (uSnap.exists()) {
-                                const uBal = Number(uSnap.val().balance || 0);
-                                const uXp = Number(uSnap.val().xp || 0);
-                                bulkUpdates[`users/${uid}/balance`] = uBal + refundAmt;
-                                bulkUpdates[`users/${uid}/xp`] = Math.max(0, uXp - 20); // Deduct 20 XP on Cancel
-                                
-                                const txnRef = push(ref(rd, 'deposits')).key;
-                                bulkUpdates[`deposits/${txnRef}`] = { userId: uid, amount: refundAmt, status: 'success', paymentMethod: `OVD_OP: REFUND - ${E('trN').value}${entryCount > 1 ? ` (${entryCount} entries)` : ''}`, timestamp: Date.now() };
+    // NAYA LOGIC: Sabhi players ka data ek sath (Parallel) fetch karo taaki 1 second me kaam ho jaye
+    const playerEntries = Object.entries(tDat.registeredPlayers);
+    const userSnaps = await Promise.all(playerEntries.map(([uid]) => get(ref(rd, `users/${uid}`))));
+    
+    playerEntries.forEach(([uid, pDat], index) => {
+        const uSnap = userSnaps[index];
+        const entryCount = pDat.slots ? pDat.slots.length : (pDat.slot ? 1 : 1);
+        const refundAmt = ef * entryCount;
+        
+        if (uSnap.exists()) {
+            const uBal = Number(uSnap.val().balance || 0);
+            const uXp = Number(uSnap.val().xp || 0);
+            bulkUpdates[`users/${uid}/balance`] = uBal + refundAmt;
+            bulkUpdates[`users/${uid}/xp`] = Math.max(0, uXp - 20); // Deduct 20 XP on Cancel
+            
+            const txnRef = push(ref(rd, 'deposits')).key;
+            bulkUpdates[`deposits/${txnRef}`] = { userId: uid, amount: refundAmt, status: 'success', paymentMethod: `OVD_OP: REFUND - ${E('trN').value}${entryCount > 1 ? ` (${entryCount} entries)` : ''}`, timestamp: Date.now() };
 
-                                const notifRef = push(ref(rd, `users/${uid}/notifications`)).key;
-                                bulkUpdates[`users/${uid}/notifications/${notifRef}`] = { title: "Match Canceled - Refund Issued", message: entryCount > 1 ? `Your entry fees for ${entryCount} entries (${FMT_C(refundAmt)} total) in ${E('trN').value} have been refunded to your deposit balance.` : `Your entry fee of ${FMT_C(refundAmt)} for ${E('trN').value} has been refunded to your deposit balance.`, type: "info", read: false, timestamp: Date.now() };
-                            }
-                        }
+            const notifRef = push(ref(rd, `users/${uid}/notifications`)).key;
+            bulkUpdates[`users/${uid}/notifications/${notifRef}`] = { title: "Match Canceled - Refund Issued", message: entryCount > 1 ? `Your entry fees for ${entryCount} entries (${FMT_C(refundAmt)} total) in ${E('trN').value} have been refunded to your deposit balance.` : `Your entry fee of ${FMT_C(refundAmt)} for ${E('trN').value} has been refunded to your deposit balance.`, type: "info", read: false, timestamp: Date.now() };
+        }
+    });
+}
                     }
-                }
+                
 
                 const d={ gameId: gameId, gameName: GC[gameId]?.name || '', modeId: modeId, modeName: E('trMdCat').options[E('trMdCat').selectedIndex]?.text || '', matchNumber: Number(E('trMatchNum').value), name:E('trN').value, startTime:new Date(E('trT').value).getTime(), status: status, entryFee:Number(E('trEf').value), prizePool:Number(E('trPp').value), perKillPrize:Number(E('trPk').value), maxPlayers:Number(E('trMx').value), mode:E('trMd').value, tags: tags.length > 0 ? tags : null, bannerUrl:bannerUrl, description:E('trD').value.replace(/\n/g, '<br>'), roomId:E('trRk').value, roomPassword:E('trRp').value, showIdPass:E('trRs').checked, liveStreamUrl: E('trLsU').value, liveStreamTitle: E('trLsT').value, showLiveButton: E('trLsS').checked, prizeList: Object.keys(prizeList).length > 0 ? prizeList : null }; 
                 if(!id) { d.createdByUid = C_U.uid; d.createdByName = window.C_NAME; d.createdByRole = window.C_ROLE; d.creatorTrackingId = (window.C_ROLE === 'Super Admin' || window.C_ROLE === 'Admin' ? 'ADM-' : 'STF-') + Math.random().toString(36).substr(2,5).toUpperCase(); d.createdAt = Date.now(); }
