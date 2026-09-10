@@ -6890,213 +6890,146 @@ if(E('spWindow')) E('spWindow').onchange = () => RX_SP();
                 btn.innerHTML = originalText;
             }
         };
+window.RUN_MASTER_AUDIT = async function() {
+    if (!window.IS_MAIN_ADMIN) return TS('Only Super Admin can run Master Audit', 'error');
 
-        window.RUN_MASTER_AUDIT = async () => {
-            if(!window.IS_MAIN_ADMIN) return TS('Only Main Admin can run this (heavy data usage)','error');
-            if(!confirm("Start Master Ledger Audit? It will auto-fix deleted matches and give manual fix options for other frauds.")) return;
+    const btn = document.getElementById('btnRunAudit');
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Scanning...';
+    btn.disabled = true;
 
-            // Switch to the Users section first so the row-by-row results (fraud/safe markers) are visible as they're applied
-            R_N('users-section');
+    try {
+        // 1. Sabhi users, deposits, withdrawals aur transactions ka data ek sath fetch karein
+        const [uSnap, depSnap, wdSnap, txnSnap] = await Promise.all([
+            get(ref(rd, 'users')),
+            get(ref(rd, 'deposits')),
+            get(ref(rd, 'withdrawals')),
+            get(ref(rd, 'transactions'))
+        ]);
 
-            const btn = document.getElementById('btnRunAudit');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Scanning...`;
-            btn.disabled = true;
+        let auditResults = [];
 
-            try {
-                // 1. Fetch ALL data 
-                const [uSnap, dSnap, wSnap, cSnap, rSnap, tSnap] = await Promise.all([
-                    get(ref(rd, 'users')),
-                    get(ref(rd, 'deposits')),
-                    get(ref(rd, 'withdrawals')),
-                    get(ref(rd, 'couponCodes')),
-                    get(ref(rd, 'pendingReferrals')),
-                    get(ref(rd, 'tournaments'))
-                ]);
-
-                if(!uSnap.exists()) { TS("No users found.", "warning"); return; }
-
-                const usersData = uSnap.val();
-                const depositsData = dSnap.exists() ? dSnap.val() : {};
-                const withdrawalsData = wSnap.exists() ? wSnap.val() : {};
-                const couponsData = cSnap.exists() ? cSnap.val() : {};
-                const referralsData = rSnap.exists() ? rSnap.val() : {};
-                const tournamentsData = tSnap.exists() ? tSnap.val() : {}; 
-
-                let fraudCount = 0;
-                let autoFixCount = 0;
-                let bulkUpdates = {}; 
-
-                // 2. Loop through every user
-                for (const [uid, u] of Object.entries(usersData)) {
-                    let expectedSum = 0;
-                    let hasDeletedMatch = false;
-
-                    // CHECK FOR DELETED MATCHES
-                    if (u.joinedTournaments) {
-                        Object.keys(u.joinedTournaments).forEach(matchId => {
-                            if (!tournamentsData[matchId]) {
-                                hasDeletedMatch = true; 
-                            }
-                        });
-                    }
-
-                    // A. Global Deposits & Admin Adjustments
-                    Object.values(depositsData).forEach(d => {
-                        if(d.userId === uid && (d.status === 'success' || d.status === 'completed')) {
-                            expectedSum += Number(d.amount) || 0;
-                            // Manual UPI deposits auto-credit a 10% bonus into bonusCash on approval (see 'ap-d' handler)
-                            // which never gets its own ledger/transaction entry — so the audit must add it here too,
-                            // otherwise every legit Manual UPI depositor gets falsely flagged as fraud.
-                            if(d.paymentMethod === 'Manual UPI') expectedSum += +(Number(d.amount || 0) * 0.10).toFixed(2);
-                        }
-                    });
-
-                    // B. Global Withdrawals
-                    Object.values(withdrawalsData).forEach(w => {
-                        if(w.userId === uid && (w.status === 'success' || w.status === 'completed')) expectedSum -= Number(w.amount) || 0;
-                    });
-
-                    // C. Personal Transactions
-                    if (u.transactions) {
-                        Object.values(u.transactions).forEach(tx => {
-                            if (tx.status === 'Success' || tx.status === 'completed') {
-                                const amt = Number(tx.amount) || 0;
-                                const type = tx.type || '';
-                                if (['Winnings', 'Lottery Winnings'].includes(type)) expectedSum += amt;
-                                else if (['Match Entry', 'VIP Membership', 'Product Purchase', 'Lottery Ticket'].includes(type)) expectedSum -= amt;
-                                // Weekly Leaderboard Reward: only Rank 1-3 credit real wallet cash (into 'balance',
-                                // logged with method 'Deposit Balance'). Ranks 4-10 grant spin tickets/scratch
-                                // cards/XP, which never touch balance/winningCash/bonusCash, so they're correctly
-                                // left out of this sum — only count the cash-crediting ones here.
-                                else if (type === 'Weekly Leaderboard Reward' && tx.method === 'Deposit Balance') expectedSum += amt;
-                                // Level Reward: reward type is stored as the transaction's `method`. Only
-                                // 'balance' and 'bonusCash' rewards touch the audited wallet fields — spinTickets/
-                                // coins/scratchCards/membership rewards don't, so those are correctly skipped.
-                                else if (type === 'Level Reward' && (tx.method === 'balance' || tx.method === 'bonusCash')) expectedSum += amt;
-                                // Spin to Win: only pushed to transactions when the spin actually credits
-                                // 'balance' (Deposit Balance) — losing/zero-value spins never get a tx entry.
-                                else if (type === 'Spin to Win') expectedSum += amt;
-                                // Scratch Card: only the 'coins' outcome credits 'balance' (Deposit Balance);
-                                // XP and Spin Ticket outcomes are logged too but don't touch the wallet fields.
-                                else if (type === 'Scratch Card' && tx.method === 'Deposit Balance') expectedSum += amt;
-                            }
-                        });
-                    }
-
-                    // D. Coupon Codes
-                    Object.values(couponsData).forEach(coupon => {
-                        if(coupon.usedUsers && coupon.usedUsers[uid]) expectedSum += Number(coupon.amount) || 0;
-                    });
-
-                    // E. Referral System
-                    Object.values(referralsData).forEach(refEntry => {
-                        if(refEntry.referrerUid === uid && refEntry.status === 'completed') expectedSum += Number(refEntry.bonusAmount) || 0;
-                        if(refEntry.referredUid === uid) expectedSum += Number(refEntry.bonusAmount) || 0;
-                    });
-
-                    // F. Math Check
-                    const currentBalance = (Number(u.balance) || 0) + (Number(u.winningCash) || 0) + (Number(u.bonusCash) || 0);
-                    const difference = currentBalance - expectedSum;
-                    const userRow = document.querySelector(`tr[data-u="${uid}"]`);
-                    
-                    if (difference > 1) { 
-                        
-                        if (hasDeletedMatch) {
-                            // =====================================
-                            // AUTO-FIX LOGIC (Deleted Match)
-                            // =====================================
-                            autoFixCount++;
-                            const newTxKey = push(ref(rd, 'deposits')).key;
-                            bulkUpdates[`deposits/${newTxKey}`] = {
-                                userId: uid,
-                                amount: Number(difference.toFixed(2)),
-                                status: 'success',
-                                paymentMethod: 'OVD_OP: Auto-Sync (Deleted Match)',
-                                timestamp: Date.now()
-                            };
-
-                            if (userRow) {
-                                userRow.style.backgroundColor = "rgba(16, 185, 129, 0.1)"; 
-                                userRow.style.borderLeft = "4px solid #10b981";
-                                const nameCell = userRow.querySelector('td:first-child');
-                                if(nameCell && nameCell.innerHTML.includes('FRAUD')) nameCell.innerHTML = nameCell.innerHTML.split('<br><div class="mt-2"')[0];
-                                
-                                if (nameCell && !nameCell.innerHTML.includes('AUTO-FIXED')) {
-                                    nameCell.innerHTML += `<br><div class="mt-2"><span class="badge bg-success px-2 py-1"><i class="bi bi-tools"></i> AUTO-FIXED (+${difference.toFixed(2)})</span></div>`;
-                                }
-                            }
-                        } else {
-                            // =====================================
-                            // FRAUD LOGIC + MANUAL FIX BUTTON
-                            // =====================================
-                            fraudCount++;
-                            if (userRow) {
-                                userRow.style.backgroundColor = "rgba(239, 68, 68, 0.2)"; 
-                                userRow.style.borderLeft = "4px solid #ef4444";
-                                const nameCell = userRow.querySelector('td:first-child');
-                                if (nameCell && !nameCell.innerHTML.includes('FRAUD CAUGHT')) {
-                                    nameCell.innerHTML += `
-                                    <div class="mt-2" id="fraudBox_${uid}">
-                                        <span class="badge bg-danger px-2 py-1"><i class="bi bi-exclamation-triangle-fill"></i> FRAUD CAUGHT (+${difference.toFixed(2)})</span>
-                                        <button class="btn btn-sm btn-warning text-dark fw-bold ms-1 py-0 px-2" style="font-size: 0.65rem;" onclick="window.SYNC_LEDGER('${uid}', ${difference})"><i class="bi bi-tools"></i> Fix Ledger</button>
-                                    </div>`;
-                                }
-                            }
-                        }
-
-                    } else if (userRow) {
-                        // NORMAL SAFE USER
-                        userRow.style.backgroundColor = "rgba(16, 185, 129, 0.1)"; 
-                        userRow.style.borderLeft = "4px solid #10b981";
-                        const nameCell = userRow.querySelector('td:first-child');
-                        if(nameCell && nameCell.innerHTML.includes('FRAUD')) nameCell.innerHTML = nameCell.innerHTML.split('<br><div class="mt-2"')[0];
-                    }
-                }
-
-                // 3. Save Auto-Fixes to Firebase
-                if (Object.keys(bulkUpdates).length > 0) {
-                    await update(ref(rd), bulkUpdates);
-                    TS(`${autoFixCount} Accounts Auto-Fixed Successfully!`, "success");
-                }
-
-                // 4. Final Alert
-                if (fraudCount > 0) {
-                    setTimeout(() => TS(`Alert! ${fraudCount} Suspicious Accounts Found!`, "error"), 1000);
-                } else if (fraudCount === 0 && autoFixCount === 0) {
-                    TS("Audit Passed. 100% Accounts are Safe! 🟢", "success");
-                }
-
-            } catch (err) {
-                console.error("Audit Error:", err);
-                TS("Audit failed: " + err.message, "error");
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        };
-
-        // Helper to fix missing history manually
-        window.SYNC_LEDGER = async (uid, diff) => {
-            if(!confirm(`This will generate a missing receipt of +${diff.toFixed(2)} to balance this user's math. The actual wallet balance WILL NOT change. Proceed?`)) return;
-            try {
-                const newTxRef = push(ref(rd, 'deposits'));
-                await set(newTxRef, {
-                    userId: uid,
-                    amount: Number(diff.toFixed(2)),
-                    status: 'success',
-                    paymentMethod: 'OVD_OP: Ledger Sync (Manual Fix)',
-                    timestamp: Date.now()
-                });
-                TS("Ledger Synced! Math is balanced now.", "success");
+        if (uSnap.exists()) {
+            uSnap.forEach(uNode => {
+                const uid = uNode.key;
+                const uData = uNode.val();
                 
-                const box = document.getElementById(`fraudBox_${uid}`);
-                if(box) box.innerHTML = `<span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Math Fixed! Run Audit Again.</span>`;
-            } catch(e) {
-                console.error(e);
-                TS("Error fixing ledger: " + e.message, "error");
-            }
-        };
+                let expectedTotal = 0;
+                
+                // + Deposits ko add karein
+                if (depSnap.exists()) {
+                    depSnap.forEach(d => {
+                        const dVal = d.val();
+                        if (dVal.userId === uid && (dVal.status === 'success' || dVal.status === 'completed')) {
+                            expectedTotal += Number(dVal.amount) || 0;
+                        }
+                    });
+                }
+
+                // - Withdrawals ko minus karein (Completed & Pending)
+                if (wdSnap.exists()) {
+                    wdSnap.forEach(w => {
+                        const wVal = w.val();
+                        if (wVal.userId === uid && (wVal.status === 'pending' || wVal.status === 'completed')) {
+                            expectedTotal -= Number(wVal.amount) || 0;
+                        }
+                    });
+                }
+
+                // +/- Transactions se Winnings aur Entry Fees adjust karein
+                if (txnSnap.exists()) {
+                    txnSnap.forEach(t => {
+                        const tVal = t.val();
+                        if (tVal.userId === uid || tVal.uid === uid) {
+                            if (tVal.status === 'Success' || tVal.status === 'completed') {
+                                // Income (+ Coins)
+                                if (['Winnings', 'Lottery Winnings', 'Referral Bonus', 'Spin to Win', 'Scratch Card', 'Level Reward', 'Gift Code', 'Wallet Update'].includes(tVal.type)) {
+                                    expectedTotal += Number(tVal.amount) || 0;
+                                }
+                                // Expense (- Coins)
+                                if (['Match Entry', 'Lottery Ticket', 'Product Purchase', 'VIP Membership'].includes(tVal.type)) {
+                                    expectedTotal -= Number(tVal.amount) || 0;
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // User ka Asli Wallet Balance
+                const actualTotal = (Number(uData.balance) || 0) + (Number(uData.winningCash) || 0) + (Number(uData.bonusCash) || 0);
+                
+                // Mismatch (Fake Coins) nikalna
+                const mismatch = Math.round(actualTotal - expectedTotal);
+
+                auditResults.push({
+                    uid: uid,
+                    name: uData.displayName || uData.email || 'Unknown',
+                    actualTotal: actualTotal,
+                    expectedTotal: expectedTotal,
+                    mismatch: mismatch,
+                    isHacker: mismatch > 10 // 10 coins ka chhota buffer allow kiya hai sync delay ke liye
+                });
+            });
+        }
+
+        // 🔴 THE MAGIC TRICK: SORTING (Fake players sabse upar)
+        // Jiska 'mismatch' sabse zyada hoga, array.sort usko list ke Top (No. 1) par dhakel dega
+        auditResults.sort((a, b) => {
+            return b.mismatch - a.mismatch; 
+        });
+
+        // 3. Modal me Result Show Karna
+        let html = auditResults.map(r => `
+            <tr style="background: ${r.isHacker ? 'rgba(239, 68, 68, 0.15)' : 'transparent'}; border-left: ${r.isHacker ? '4px solid #ef4444' : 'none'};">
+                <td><strong>${r.name}</strong><br><small class="text-muted font-monospace">${r.uid}</small></td>
+                <td class="text-info fw-bold">${window.FMT_C(r.expectedTotal)}</td>
+                <td class="text-warning fw-bold">${window.FMT_C(r.actualTotal)}</td>
+                <td class="${r.isHacker ? 'text-danger fw-bold fs-5' : 'text-success fw-bold'}">${r.mismatch > 0 ? '+' : ''}${r.mismatch}</td>
+                <td>${r.isHacker ? '<span class="badge bg-danger p-2"><i class="bi bi-shield-x"></i> FAKE COINS</span>' : '<span class="badge bg-success p-2">CLEAN</span>'}</td>
+            </tr>
+        `).join('');
+
+        let auditModal = document.getElementById('auditResultModal');
+        if (!auditModal) {
+            document.body.insertAdjacentHTML('beforeend', `
+                <div class="modal fade" id="auditResultModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                        <div class="modal-content border-danger">
+                            <div class="modal-header border-danger" style="background:rgba(239, 68, 68, 0.1);">
+                                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-shield-check"></i> System Audit Results (Fake Players on Top)</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-glass mb-0">
+                                        <thead style="position: sticky; top: 0; background: var(--bg-surface); z-index: 10;">
+                                            <tr><th>User Details</th><th>Ledger Balance (Sahi)</th><th>Wallet Balance (Fake)</th><th>Mismatch (Extra Coins)</th><th>Status</th></tr>
+                                        </thead>
+                                        <tbody>${html}</tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+            auditModal = document.getElementById('auditResultModal');
+        } else {
+            auditModal.querySelector('tbody').innerHTML = html;
+        }
+
+        let modalInstance = new bootstrap.Modal(auditModal);
+        modalInstance.show();
+        TS('Audit Completed Successfully', 'success');
+
+    } catch (err) {
+        console.error(err);
+        TS('Audit Failed: ' + err.message, 'error');
+    } finally {
+        btn.innerHTML = oldHtml;
+        btn.disabled = false;
+    }
+};
 
         // ===================== P&L REPORT (Match Profit & Loss) =====================
         const RX_PL_REPORT = async () => {
