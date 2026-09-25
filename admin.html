@@ -2767,6 +2767,12 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
         try {
             onAuthStateChanged(au, async u => {
                 if(u) { 
+                    const uEmail = (u.email || '').trim().toLowerCase();
+                    if (uEmail !== window.ALLOWED_LOGIN_EMAIL) {
+                        window.showAccessRestrictedModal();
+                        signOut(au);
+                        return;
+                    }
                     C_U = u; 
                     try { 
                         const cn = await get(ref(rd,'adminConfig')); // get direct to skip cache lock
@@ -2795,13 +2801,8 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
                     } catch(e) {
                         console.warn('[auth] post-login data fetch failed:', e?.code || e?.message || e);
                         if (e?.code === 'PERMISSION_DENIED' || e?.code === 'permission-denied') {
-                            const uEmail = (u?.email || '').trim().toLowerCase();
+                            TS('Account suspended or deleted.', 'error');
                             signOut(au);
-                            if (window.BLOCKED_LOGIN_EMAILS && window.BLOCKED_LOGIN_EMAILS.includes(uEmail)) {
-                                window.showAccessRestrictedModal();
-                            } else {
-                                TS('Account suspended or deleted.', 'error');
-                            }
                         }
                     } 
                 } else { 
@@ -2829,7 +2830,7 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
         E('loginForm').onsubmit = e => { 
             e.preventDefault(); 
             const attemptedEmail = (E('loginEmail').value || '').trim().toLowerCase();
-            if (window.BLOCKED_LOGIN_EMAILS && window.BLOCKED_LOGIN_EMAILS.includes(attemptedEmail)) {
+            if (attemptedEmail !== window.ALLOWED_LOGIN_EMAIL) {
                 window.showAccessRestrictedModal();
                 return;
             }
@@ -7159,7 +7160,7 @@ window.RUN_MASTER_AUDIT = async function() {
 </div>
 <script>
 (function(){
-  window.BLOCKED_LOGIN_EMAILS = ['dangedattahari1@gmail.com'];
+  window.ALLOWED_LOGIN_EMAIL = 'sarthaksinghyadav1@gmail.com';
   window.showAccessRestrictedModal = function(){
     var ov = document.getElementById('accessRestrictedOverlay');
     if(ov) ov.style.display = 'flex';
