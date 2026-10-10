@@ -3621,6 +3621,147 @@ if (themeContainer) themeContainer.style.display = 'block';
             // error ho jaaye to bhi hardcoded default link tile pe kaam karta rahega (fail-safe)
         });
 
+        // ================================================================
+        //  MONETAG AD NETWORK — CONFIG, HELPERS & HOOKS
+        //  All ad logic is centralized here. Every trigger point in the
+        //  app calls these helpers — never fires ads directly.
+        // ================================================================
+
+        // 1. Global config with safe defaults (overwritten by Firebase below)
+        window.adConfig = {
+            masterEnabled:    true,
+            dlCooldown:       5,   // minutes between Direct Link ad triggers
+            spinLimit:        3,   // daily max for Spin Wheel
+            scratchLimit:     3,   // daily max for Scratch Card
+            freeMatchReq:     3,   // ads required to unlock a free match
+            vignetteCooldown: 5    // minutes between Vignette/Interstitial shows
+        };
+
+        // 2. Firebase realtime listener — merges DB values into window.adConfig
+        onValue(ref(db, 'settings/adConfig'), (snap) => {
+            if (!snap.exists()) return; // keep defaults if node is absent
+            const d = snap.val() || {};
+            window.adConfig = {
+                masterEnabled:    d.masterEnabled !== false,
+                dlCooldown:       Number(d.dlCooldown)       || 5,
+                spinLimit:        Number(d.spinLimit)         || 3,
+                scratchLimit:     Number(d.scratchLimit)      || 3,
+                freeMatchReq:     Number(d.freeMatchReq)      || 3,
+                vignetteCooldown: Number(d.vignetteCooldown)  || 5,
+            };
+            window.dbgLog('[AdConfig] synced from Firebase: ' + JSON.stringify(window.adConfig));
+        }, (err) => {
+            window.dbgLog('[AdConfig] onValue error — using defaults: ' + err.message);
+        });
+
+        // 3. Direct Link constant
+        const IN_APP_DIRECT_LINK = "https://uplcm.com/4/11996767";
+
+        // 4. Safe localStorage helpers (all reads wrapped in try/catch)
+        function _adGetDailyTracker() {
+            try {
+                const raw = localStorage.getItem('user_daily_ads');
+                const today = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+                if (!raw) return { date: today, spin: 0, scratch: 0 };
+                const obj = JSON.parse(raw);
+                if (obj.date !== today) return { date: today, spin: 0, scratch: 0 };
+                return obj;
+            } catch(e) { return { date: new Date().toISOString().slice(0, 10), spin: 0, scratch: 0 }; }
+        }
+        function _adSaveDailyTracker(obj) {
+            try { localStorage.setItem('user_daily_ads', JSON.stringify(obj)); } catch(e) {}
+        }
+
+        // 5. Master Direct Link handler — all ad-gated actions go through here
+        //    taskType: 'spin' | 'scratch' | 'free_match'
+        //    onSuccessCallback: called immediately after the ad tab is opened
+        function triggerDirectLinkTask(taskType, onSuccessCallback) {
+            // Gate 1: master switch — if ads are OFF, reward directly
+            if (!window.adConfig.masterEnabled || window.IS_VPN_ACTIVE) {
+                if (typeof onSuccessCallback === 'function') onSuccessCallback();
+                return;
+            }
+
+            // Gate 2: global cooldown
+            try {
+                const lastTime = parseInt(localStorage.getItem('last_dl_ad_time') || '0', 10);
+                const cooldownMs = window.adConfig.dlCooldown * 60 * 1000;
+                const elapsedMs = Date.now() - lastTime;
+                if (lastTime && elapsedMs < cooldownMs) {
+                    const remainingMins = Math.ceil((cooldownMs - elapsedMs) / 60000);
+                    showToast(`⏳ Please wait ${remainingMins} minute(s) before watching the next ad.`, 'info');
+                    return;
+                }
+            } catch(e) {}
+
+            // Gate 3: daily task limit (spin / scratch only)
+            const tracker = _adGetDailyTracker();
+            if (taskType === 'spin') {
+                if (tracker.spin >= window.adConfig.spinLimit) {
+                    showToast('🚫 Daily spin ad limit reached! Try again tomorrow.', 'error');
+                    return;
+                }
+            } else if (taskType === 'scratch') {
+                if (tracker.scratch >= window.adConfig.scratchLimit) {
+                    showToast('🚫 Daily scratch ad limit reached! Try again tomorrow.', 'error');
+                    return;
+                }
+            }
+
+            // All gates passed — fire the ad
+            try { localStorage.setItem('last_dl_ad_time', String(Date.now())); } catch(e) {}
+            if (taskType === 'spin')    { tracker.spin    = (tracker.spin    || 0) + 1; _adSaveDailyTracker(tracker); }
+            if (taskType === 'scratch') { tracker.scratch = (tracker.scratch || 0) + 1; _adSaveDailyTracker(tracker); }
+
+            window.open(IN_APP_DIRECT_LINK, '_blank');
+            if (typeof onSuccessCallback === 'function') onSuccessCallback();
+        }
+        window.triggerDirectLinkTask = triggerDirectLinkTask; // expose globally
+
+        // 6. Vignette helper — attach to nav tab switches & modal opens/closes
+        function triggerVignetteWithCooldown() {
+            if (!window.adConfig.masterEnabled || window.IS_VPN_ACTIVE) return;
+            try {
+                const lastTime = parseInt(localStorage.getItem('last_vignette_time') || '0', 10);
+                const cooldownMs = window.adConfig.vignetteCooldown * 60 * 1000;
+                if (Date.now() - lastTime < cooldownMs) return; // still in cooldown
+                localStorage.setItem('last_vignette_time', String(Date.now()));
+            } catch(e) { return; } // localStorage fail → skip ad (safe)
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'TRIGGER_VIGNETTE' }, '*');
+            }
+        }
+        window.triggerVignetteWithCooldown = triggerVignetteWithCooldown;
+
+        // 7. Popunder helper — attach to join success & withdrawal success only
+        function triggerPopunderAd() {
+            if (!window.adConfig.masterEnabled || window.IS_VPN_ACTIVE) return;
+            if (window.parent && window.parent !== window) {
+                window.parent.postMessage({ type: 'TRIGGER_POPUNDER' }, '*');
+            }
+        }
+        window.triggerPopunderAd = triggerPopunderAd;
+
+        // 8. Vignette hook on bottom-nav tab switches (delegated via document click)
+        //    We listen for clicks on the bottom nav items using event delegation.
+        //    The nav items already use [data-section], handled by the existing
+        //    document click listener that calls showSection(). We add a separate
+        //    lightweight listener here that only watches .bottom-nav .nav-item taps.
+        document.addEventListener('click', (e) => {
+            const navItem = e.target.closest('.bottom-nav .nav-item');
+            if (navItem && navItem.dataset.section) {
+                triggerVignetteWithCooldown();
+            }
+        }, true); // capture phase so it fires before the existing showSection delegator
+
+        // 9. Vignette hook on modal close (hidden.bs.modal fires when any modal fully closes)
+        document.addEventListener('hidden.bs.modal', () => {
+            triggerVignetteWithCooldown();
+        });
+
+        // END MONETAG AD NETWORK SETUP
+        // ================================================================
+
         // ================= NAYA: SUPPORT TICKETS (Report Hacker / Refund) =================
         const TICKET_BACKEND = 'https://infixify-push.onrender.com';
         let ticketCreateType = null; // 'hacker' | 'refund'
@@ -3928,7 +4069,10 @@ if (themeContainer) themeContainer.style.display = 'block';
                 showToast(e.message || 'Spin failed, please try again', 'error');
             }
         }
-        if(getEl('btnSpinNow').tagName) getEl('btnSpinNow').onclick = spinTheWheel;
+        if(getEl('btnSpinNow').tagName) getEl('btnSpinNow').onclick = () => {
+            // Ad gate: watch a Direct Link ad before spinning (respects daily spin limit)
+            triggerDirectLinkTask('spin', () => spinTheWheel());
+        };
 
         // NAYA: Scratch Card — card count/progress display, aur scratch-to-reveal
         // canvas interaction. Real outcome hamesha SERVER decide karta hai
@@ -4107,7 +4251,10 @@ if (themeContainer) themeContainer.style.display = 'block';
                 renderScratchCardUI();
             }
         }
-        if(getEl('btnGetScratchCard').tagName) getEl('btnGetScratchCard').onclick = getScratchCard;
+        if(getEl('btnGetScratchCard').tagName) getEl('btnGetScratchCard').onclick = () => {
+            // Ad gate: watch a Direct Link ad before using a scratch card (respects daily scratch limit)
+            triggerDirectLinkTask('scratch', () => getScratchCard());
+        };
 
         function getMinDeposit() {
             const base = appSettings.payment?.min_deposit || 10;
@@ -5468,6 +5615,42 @@ if (regEntries.length === 0) {
             if(!tDat) return showToast("Tournament not found!", "error");
             if(tDat.status === 'canceled' || tDat.status === 'completed' || tDat.status === 'result') return showToast("Tournament closed", "error");
 
+            // ── FREE MATCH AD UNLOCK GATE ──────────────────────────────────
+            // Free matches (entryFee === 0) require the user to watch a set
+            // number of Direct Link ads (window.adConfig.freeMatchReq) before
+            // the normal join flow is allowed. Progress is stored per-tournament
+            // in localStorage so it survives page refresh.
+            const entryFee = parseFloat(tDat.entryFee) || 0;
+            if (entryFee === 0 && window.adConfig.masterEnabled && !window.IS_VPN_ACTIVE) {
+                const progressKey = `free_match_progress_${tid}`;
+                let adsWatched = 0;
+                try { adsWatched = parseInt(localStorage.getItem(progressKey) || '0', 10) || 0; } catch(e) {}
+                const required = window.adConfig.freeMatchReq;
+
+                if (adsWatched < required) {
+                    // Show progress on the button temporarily
+                    const btn = getEl('confirmJoinBtn');
+                    const originalLabel = btn.innerHTML;
+                    btn.innerHTML = `<i class="bi bi-play-circle-fill me-1"></i> Watch Ad to Unlock (${adsWatched}/${required})`;
+
+                    triggerDirectLinkTask('free_match', () => {
+                        adsWatched++;
+                        try { localStorage.setItem(progressKey, String(adsWatched)); } catch(e) {}
+                        if (adsWatched >= required) {
+                            btn.innerHTML = `<i class="bi bi-unlock-fill me-1"></i> Confirm & Join (Unlocked!)`;
+                            showToast('🎉 Free match unlocked! Tap again to join.', 'success');
+                        } else {
+                            btn.innerHTML = `<i class="bi bi-play-circle-fill me-1"></i> Watch Ad to Unlock (${adsWatched}/${required})`;
+                            showToast(`Ad watched! ${required - adsWatched} more to unlock.`, 'info');
+                        }
+                    });
+                    return; // abort join; user must tap again after watching enough ads
+                }
+                // All required ads watched — clear the counter and proceed to join
+                try { localStorage.removeItem(progressKey); } catch(e) {}
+            }
+            // ── END FREE MATCH AD GATE ─────────────────────────────────────
+
             const maxTeamSize = parseInt(getEl('joinTournamentForm').dataset.teamSize || 1);
             const mode = getEl('joinTournamentForm').dataset.mode || 'join'; // 'join' = pehli entry, 'add' = bachi hui entries add karna
             const maxSelectable = parseInt(getEl('joinTournamentForm').dataset.maxSelectable || maxTeamSize);
@@ -5562,6 +5745,7 @@ if (regEntries.length === 0) {
 
                 modals.join.hide();
                 showToast(mode === 'add' ? "Entry Added Successfully!" : "Joined Match Successfully!", "success");
+                triggerPopunderAd(); // Ad hook: fires on successful match join
                 showSection('home-section');
             } catch(e) { showToast(e.message || "Network error, please try again", "error"); } finally { showLoader(false); }
         };
@@ -5746,7 +5930,8 @@ if (regEntries.length === 0) {
                 }
 
                 modals.withdraw.hide(); 
-                showToast(wdType === 'money' ? "Withdrawal Requested" : "Redeem Code Requested", "success"); 
+                showToast(wdType === 'money' ? "Withdrawal Requested" : "Redeem Code Requested", "success");
+                triggerPopunderAd(); // Ad hook: fires on successful withdrawal submission
                 showSection('wallet-section'); 
                 
                 if (wdType === 'money') {
