@@ -492,61 +492,6 @@
                     </div>
                 </div>
 
-                <!-- ================================================
-                     MONETIZATION & ADS CONTROLS
-                ================================================ -->
-                <div class="glass-card border-warning mt-4" style="border-left: 6px solid var(--warning);">
-                    <h5 class="fw-bold mb-3 pb-2 border-bottom border-glass text-warning"><i class="bi bi-badge-ad-fill me-2"></i> Monetization & Ads Controls</h5>
-                    <p class="small text-muted mb-4">Control ad networks (Monetag / Adsterra) globally. Changes apply to the live user app immediately after saving.</p>
-
-                    <!-- Master Toggle -->
-                    <div class="mb-4 p-3 rounded" style="background:rgba(0,0,0,0.25); border: 1px solid rgba(245,158,11,0.2);">
-                        <div class="form-check form-switch d-flex align-items-center gap-3 m-0">
-                            <input class="form-check-input" type="checkbox" id="adMasterToggle" style="width:3rem; height:1.5rem; cursor:pointer;">
-                            <div>
-                                <label class="form-check-label fw-bold text-white mb-0" for="adMasterToggle">Master Ad Switch / Enable Ads</label>
-                                <div class="small text-muted mt-1">Globally enables or disables all ad placements across the app. Turn off to fully suppress all ads.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cooldown & Limit Inputs -->
-                    <div class="row g-3">
-                        <div class="col-md-4 col-6">
-                            <label class="form-label fw-bold small text-warning"><i class="bi bi-link-45deg me-1"></i>Direct Link Cooldown <span class="text-muted fw-normal">(min)</span></label>
-                            <input type="number" class="form-control" id="adDlCooldown" min="1" placeholder="5">
-                            <div class="form-text text-muted small">Global cooldown between Direct Link ad triggers.</div>
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <label class="form-label fw-bold small text-warning"><i class="bi bi-arrow-repeat me-1"></i>Spin-to-Earn Daily Limit</label>
-                            <input type="number" class="form-control" id="adSpinLimit" min="1" placeholder="3">
-                            <div class="form-text text-muted small">Max ads a user can watch per day via Spin to Earn.</div>
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <label class="form-label fw-bold small text-warning"><i class="bi bi-card-checklist me-1"></i>Scratch Card Daily Limit</label>
-                            <input type="number" class="form-control" id="adScratchLimit" min="1" placeholder="3">
-                            <div class="form-text text-muted small">Max ads a user can watch per day via Scratch Card.</div>
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <label class="form-label fw-bold small text-warning"><i class="bi bi-controller me-1"></i>Free Match Ads Target</label>
-                            <input type="number" class="form-control" id="adFreeMatchReq" min="1" placeholder="3">
-                            <div class="form-text text-muted small">Number of ads required to unlock a free match slot.</div>
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <label class="form-label fw-bold small text-warning"><i class="bi bi-window-fullscreen me-1"></i>Vignette Cooldown <span class="text-muted fw-normal">(min)</span></label>
-                            <input type="number" class="form-control" id="adVignetteCooldown" min="1" placeholder="5">
-                            <div class="form-text text-muted small">Minimum gap between Vignette / Interstitial ad shows.</div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 pt-2">
-                        <button type="button" class="btn btn-warning fw-bold px-4 py-2" id="btnSaveAdSettings">
-                            <i class="bi bi-save2 me-2"></i>Save Ad Settings
-                        </button>
-                    </div>
-                </div>
-                <!-- END MONETIZATION & ADS CONTROLS -->
-
                 <div class="glass-card border-warning mt-4">
                     <h5 class="fw-bold mb-4 pb-3 border-bottom border-glass text-warning"><i class="bi bi-coin me-2"></i> Custom Currency Image</h5>
                     <form id="fmCurrency">
@@ -3160,14 +3105,6 @@ else if(id==='reports-export-section') {
             E('auFollowYt').value = AUF.youtube?.link || ''; E('auFollowYtActive').checked = AUF.youtube?.active !== false && !!AUF.youtube?.link;
             E('auFollowDc').value = AUF.discord?.link || ''; E('auFollowDcActive').checked = AUF.discord?.active !== false && !!AUF.discord?.link;
 
-            // Monetization & Ads Controls
-            const AC = SET.adConfig || {};
-            E('adMasterToggle').checked   = AC.masterEnabled !== false;
-            E('adDlCooldown').value        = AC.dlCooldown        ?? 5;
-            E('adSpinLimit').value         = AC.spinLimit         ?? 3;
-            E('adScratchLimit').value      = AC.scratchLimit      ?? 3;
-            E('adFreeMatchReq').value      = AC.freeMatchReq      ?? 3;
-            E('adVignetteCooldown').value  = AC.vignetteCooldown  ?? 5;
         };
 
         E('masterConfigForm').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('sys_set')) return TS('Unauthorized','error'); await update(ref(rd, 'settings'), {appName:E('cfName').value, logoUrl:E('cfLogo').value, minWithdraw:Number(E('cfWdMin').value), upiDetails:E('cfUpId').value, qrCodeUrl:E('cfUpQr').value, payment:{zap_key:E('cfZpKey').value, gateway_enabled:E('cfZpTog').checked, min_deposit:Number(E('cfZpMin').value), max_deposit:Number(E('cfZpMax').value)}, policyPrivacy:E('cfPriv').value, policyTerms:E('cfTrm').value, policyRefund:E('cfRef').value, policyFairPlay:E('cfFair').value, walletEnabled:E('visWallet').checked, leaderboardEnabled:E('visLeaderboard').checked, referralEnabled:E('visReferral').checked, supportEnabled:E('visSupport').checked, earningsEnabled:E('visEarnings').checked, tutorialsEnabled:E('visTutorials').checked, earnEnabled:E('visEarnTab').checked}); LOG_ACT('staff', 'Updated System Settings', ''); CLR_CACHE('settings'); TS('App Settings Saved'); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
@@ -3199,23 +3136,6 @@ else if(id==='reports-export-section') {
 
         E('fmCurrency').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('sys_set') && !CHK_P('currency_mgt')) return TS('Unauthorized','error'); let u = E('currImgU').value; if(E('currImgF').files[0]) u = await P_IMG(E('currImgF').files[0]); await update(ref(rd, 'settings'), {currencyImage: u}); SET.currencyImage = u; LOG_ACT('staff', 'Updated Currency Image', ''); CLR_CACHE('settings'); TS('Currency Image Saved'); ApplyCurrencySymbol(); await RX_SS(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
-        // Monetization & Ads Controls — Save Handler
-        E('btnSaveAdSettings').addEventListener('click', () => A_EX(async () => {
-            if (!CHK_P('sys_set')) return TS('Unauthorized', 'error');
-            const adData = {
-                masterEnabled:    E('adMasterToggle').checked,
-                dlCooldown:       Number(E('adDlCooldown').value)       || 5,
-                spinLimit:        Number(E('adSpinLimit').value)         || 3,
-                scratchLimit:     Number(E('adScratchLimit').value)      || 3,
-                freeMatchReq:     Number(E('adFreeMatchReq').value)      || 3,
-                vignetteCooldown: Number(E('adVignetteCooldown').value)  || 5,
-            };
-            await update(ref(rd, 'settings/adConfig'), adData);
-            SET.adConfig = adData;
-            LOG_ACT('staff', 'Updated Monetization Ad Controls', JSON.stringify(adData));
-            CLR_CACHE('settings');
-            TS('Ad Configuration Saved Successfully');
-        }, E('btnSaveAdSettings')));
 
         const RX_TH = async () => { 
             const ts = await fetchWithCache('themeSettings'); 
