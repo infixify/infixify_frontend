@@ -2767,12 +2767,6 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
         try {
             onAuthStateChanged(au, async u => {
                 if(u) { 
-                    const uEmail = (u.email || '').trim().toLowerCase();
-                    if (uEmail !== window.ALLOWED_LOGIN_EMAIL) {
-                        window.showAccessRestrictedModal();
-                        signOut(au);
-                        return;
-                    }
                     C_U = u; 
                     try { 
                         const cn = await get(ref(rd,'adminConfig')); // get direct to skip cache lock
@@ -2829,11 +2823,6 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
 
         E('loginForm').onsubmit = e => { 
             e.preventDefault(); 
-            const attemptedEmail = (E('loginEmail').value || '').trim().toLowerCase();
-            if (attemptedEmail !== window.ALLOWED_LOGIN_EMAIL) {
-                window.showAccessRestrictedModal();
-                return;
-            }
             A_EX(async () => { 
                 await signInWithEmailAndPassword(au, E('loginEmail').value, E('loginPassword').value); 
                 LOG_ACT('staff', 'Logged in', 'Login Dashboard'); 
@@ -7156,22 +7145,6 @@ window.RUN_MASTER_AUDIT = async function() {
         };
 
     </script>
-<div id="accessRestrictedOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(5,7,12,0.92);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:20px;">
-  <div style="max-width:420px;width:100%;background:#12151c;border:1px solid #2a2f3a;border-radius:16px;padding:32px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
-    <div style="font-size:42px;margin-bottom:14px;">🔒</div>
-    <h4 style="color:#fff;font-weight:700;margin-bottom:10px;">Access Restricted</h4>
-    <p style="color:#a3a9b8;font-size:15px;line-height:1.5;margin-bottom:22px;">This account no longer has access to the admin panel. If you believe this is a mistake or need to request access, please reach out on Telegram.</p>
-    <a href="https://t.me/infixifyesports" target="_blank" rel="noopener" style="display:inline-block;background:#229ED9;color:#fff;text-decoration:none;font-weight:600;padding:11px 24px;border-radius:10px;font-size:15px;">Contact on Telegram</a>
-  </div>
-</div>
-<script>
-(function(){
-  window.ALLOWED_LOGIN_EMAIL = 'sarthaksinghyadav1@gmail.com';
-  window.showAccessRestrictedModal = function(){
-    var ov = document.getElementById('accessRestrictedOverlay');
-    if(ov) ov.style.display = 'flex';
-  };
-})();
-</script>
+
 </body>
 </html>
