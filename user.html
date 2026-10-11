@@ -1028,6 +1028,12 @@
                     <i class="bi bi-arrow-repeat"></i> Spin Now (<span id="spinBtnTicketsEl">0</span> Tickets)
                 </button>
             </div>
+            <div class="text-center mt-2 px-4 pb-2">
+                <button class="btn w-100 py-2 fw-bold" id="btnWatchAdSpin" style="background:linear-gradient(135deg,#7c3aed,#4f46e5); color:#fff; border-radius:14px; font-size:0.92rem; border:none;" disabled>
+                    <i class="bi bi-play-circle-fill me-1"></i> <span id="btnWatchAdSpinLabel">Watch Ad to Earn Spin Ticket</span>
+                </button>
+                <div id="adSpinCountdownEl" class="small text-muted mt-1" style="display:none;"></div>
+            </div>
         </section>
 
         <!-- SCRATCH CARD (NAYA) -->
@@ -1067,10 +1073,16 @@
                 <div class="scratch-card-hint" id="scratchHintEl">Scratch here with your finger</div>
             </div>
 
-            <div class="text-center mt-3 px-4 mb-4">
+            <div class="text-center mt-3 px-4 mb-1">
                 <button class="btn w-100 py-3 fw-bold text-uppercase" id="btnGetScratchCard" style="background:var(--gradient-primary); color:#fff; border-radius:16px; letter-spacing:1px; font-size:1.05rem;" disabled>
                     <i class="bi bi-stars"></i> Use Card (<span id="scratchBtnCardsEl">0</span> Cards)
                 </button>
+            </div>
+            <div class="text-center mt-2 px-4 mb-4">
+                <button class="btn w-100 py-2 fw-bold" id="btnWatchAdScratch" style="background:linear-gradient(135deg,#b45309,#f59e0b); color:#fff; border-radius:14px; font-size:0.92rem; border:none;" disabled>
+                    <i class="bi bi-play-circle-fill me-1"></i> <span id="btnWatchAdScratchLabel">Watch Ad to Earn Scratch Card</span>
+                </button>
+                <div id="adScratchCountdownEl" class="small text-muted mt-1" style="display:none;"></div>
             </div>
 
             <div class="px-3 mb-2">
@@ -1863,6 +1875,40 @@
     </div>
 
     <!-- Dynamic Join Match Modal -->
+    <!-- AD INSTRUCTION MODAL (Sponsor Reward) -->
+    <div class="modal fade" id="adInstructionModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background:var(--bg-card); border:1px solid var(--border-glass); border-radius:var(--radius-lg);">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fw-bold text-gradient"><i class="bi bi-gift-fill me-2"></i>Unlock Sponsor Reward</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body pt-2">
+            <!-- Section A: Main Task -->
+            <div class="p-3 rounded-3 mb-3" style="background:rgba(6,182,212,0.1); border:1px solid rgba(6,182,212,0.4);">
+              <p class="fw-bold mb-1" style="color:var(--accent-cyan);"><i class="bi bi-check-circle-fill me-1"></i> Main Task</p>
+              <p class="small mb-0 text-white">Niche diye button par click karke sponsor website par <strong>minimum 15 seconds</strong> tak active rahein. 15 seconds poore hone par reward automatically credit ho jayega.</p>
+            </div>
+            <!-- Section B: Extra Bonus -->
+            <div class="p-3 rounded-3 mb-3" style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.4);">
+              <p class="fw-bold mb-1" style="color:var(--accent-gold, #f59e0b);"><i class="bi bi-gift-fill me-1"></i> 🎁 Extra Bonus Reward</p>
+              <p class="small mb-0 text-white">Agar aap website par offer (APK download ya register) complete karte hain, toh extra bonus coins milne ka chance hai!</p>
+            </div>
+            <!-- Section C: Rules / Warning -->
+            <div class="p-3 rounded-3 mb-2" style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.4);">
+              <p class="fw-bold mb-1 text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i> ⚠️ Important Notice</p>
+              <p class="small mb-0 text-white">15 seconds se pehle turant back aane par reward <strong>nahi milega</strong> aur poore app par <strong>90 seconds ka lock</strong> lag jayega. Task complete hone tak sponsor page par hi active rahein.</p>
+            </div>
+          </div>
+          <div class="modal-footer border-0 pt-0">
+            <button class="btn w-100 py-3 fw-bold" id="btnLaunchAdTask" style="background:var(--gradient-primary); color:#fff; border-radius:14px; font-size:1rem; letter-spacing:0.5px;">
+              <i class="bi bi-rocket-takeoff-fill me-2"></i>🚀 Open Sponsor Page &amp; Start Task
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="modal fade" id="joinTournamentDetailsModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title text-gradient" id="joinModalTitleEl">Join Match</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="glass-card text-center mb-3 p-3"><span class="text-muted small fw-bold text-uppercase">Total Entry Fee</span><h3 id="joinFeeDisplayEl" style="color: var(--text-main);" class="fw-bold m-0 mt-1 glow-text d-flex justify-content-center align-items-center">0.00</h3></div><form id="joinTournamentForm"><input type="hidden" id="joinTournamentIdInput"><div id="dynamicPlayerInputsContainer"></div><button type="button" class="btn-custom btn-primary-gradient w-100 mt-2" id="confirmJoinBtn">Confirm & Pay</button></form></div></div></div></div>
     
     <div class="modal fade" id="idPasswordModalEl" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-key-fill me-2" style="color:var(--accent-gold);"></i> Room Credentials</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><p class="small text-muted mb-4">Credentials will be visible here before match starts.</p><div class="p-3 rounded-3 mb-3 d-flex justify-content-between align-items-center border border-secondary" style="background: rgba(128,128,128,0.1);"><div class="text-start"><span class="small text-muted d-block text-uppercase fw-bold">Room ID</span><strong style="color: var(--text-main);" class="fs-5" id="roomIdDisplayEl">Waiting...</strong></div><button class="btn btn-sm btn-outline-custom copy-btn" data-target="#roomIdDisplayEl"><i class="bi bi-clipboard"></i></button></div><div class="p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border border-secondary" style="background: rgba(128,128,128,0.1);"><div class="text-start"><span class="small text-muted d-block text-uppercase fw-bold">Password</span><strong style="color: var(--text-main);" class="fs-5" id="roomPasswordDisplayEl">Waiting...</strong></div><button class="btn btn-sm btn-outline-custom copy-btn" data-target="#roomPasswordDisplayEl"><i class="bi bi-clipboard"></i></button></div></div></div></div></div>
@@ -3029,8 +3075,8 @@ if (themeContainer) themeContainer.style.display = 'block';
                 getEl('headerGameTitleEl').innerHTML = `<span style="font-size:0.65rem; color:var(--accent-cyan); display:block; line-height:1;">${gName}</span><span style="font-size:1rem; line-height:1.2; color:var(--text-main); font-weight:700;">${mName}</span>`;
             }
             else if (sectionId === 'earn-section') getEl('headerGameTitleEl').innerHTML = '<span class="text-main fw-bold">Earn Rewards</span>';
-            else if (sectionId === 'spinwheel-section') getEl('headerGameTitleEl').innerHTML = '<span class="text-main fw-bold">Spin to Win</span>';
-            else if (sectionId === 'scratchcard-section') getEl('headerGameTitleEl').innerHTML = '<span class="text-main fw-bold">Scratch Card</span>';
+            else if (sectionId === 'spinwheel-section') { getEl('headerGameTitleEl').innerHTML = '<span class="text-main fw-bold">Spin to Win</span>'; if (typeof refreshAdRewardButtons === 'function') refreshAdRewardButtons(); }
+            else if (sectionId === 'scratchcard-section') { getEl('headerGameTitleEl').innerHTML = '<span class="text-main fw-bold">Scratch Card</span>'; if (typeof refreshAdRewardButtons === 'function') refreshAdRewardButtons(); }
             else if (sectionId === 'lottery-section') getEl('headerGameTitleEl').innerHTML = '<span class="text-main fw-bold">Lucky Draw</span>';
             else if (sectionId === 'recharge-section') getEl('headerGameTitleEl').innerHTML = '<span class="text-main fw-bold">Add Funds</span>';
             else if (sectionId === 'support-section') getEl('headerGameTitleEl').innerHTML = '<span class="text-main fw-bold">Support</span>';
@@ -3717,6 +3763,263 @@ if (themeContainer) themeContainer.style.display = 'block';
             if (typeof onSuccessCallback === 'function') onSuccessCallback();
         }
         window.triggerDirectLinkTask = triggerDirectLinkTask; // expose globally
+
+        // =====================================================================
+        // SPONSOR AD REWARD ENGINE (Backend-verified: /ad-reward/status + /ad-reward/claim)
+        // Covers: spin_ticket, scratch_card, free_match_pass
+        // =====================================================================
+        const AD_REWARD_BASE = 'https://infixify-push.onrender.com';
+        const AD_DIRECT_LINK = 'https://uplcm.com/4/11996767';
+        let _adRewardStatusCache = null;   // last fetched status
+        let _adStatusFetchTs    = 0;       // when it was fetched
+        let _adCdInterval       = null;    // active countdown timer
+        let _adPenaltyInterval  = null;    // penalty lock timer
+        let _adModalInst        = null;    // Bootstrap modal instance
+
+        // --- Helpers ---
+        function _fmtMMSS(secs) {
+            const s = Math.max(0, Math.ceil(secs));
+            return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+        }
+        function _adClearTimers() {
+            if (_adCdInterval)      { clearInterval(_adCdInterval);      _adCdInterval      = null; }
+            if (_adPenaltyInterval) { clearInterval(_adPenaltyInterval); _adPenaltyInterval = null; }
+        }
+
+        // Fetch /ad-reward/status (with short cache to avoid hammering on section re-enter)
+        async function fetchAdRewardStatus(force = false) {
+            if (!currentUser) return null;
+            const now = Date.now();
+            if (!force && _adRewardStatusCache && (now - _adStatusFetchTs) < 10000) return _adRewardStatusCache;
+            try {
+                const token = await currentUser.getIdToken();
+                const r = await fetch(`${AD_REWARD_BASE}/ad-reward/status`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!r.ok) return null;
+                _adRewardStatusCache = await r.json();
+                _adStatusFetchTs = Date.now();
+                return _adRewardStatusCache;
+            } catch(e) { return null; }
+        }
+
+        // Refresh the Watch-Ad buttons on Spin and Scratch screens
+        async function refreshAdRewardButtons() {
+            const btnSpin    = document.getElementById('btnWatchAdSpin');
+            const btnScratch = document.getElementById('btnWatchAdScratch');
+            const lblSpin    = document.getElementById('btnWatchAdSpinLabel');
+            const lblScratch = document.getElementById('btnWatchAdScratchLabel');
+            const cdSpin     = document.getElementById('adSpinCountdownEl');
+            const cdScratch  = document.getElementById('adScratchCountdownEl');
+            if (!btnSpin || !btnScratch) return;
+
+            _adClearTimers();
+
+            // Check global penalty lock first
+            let penaltyRemaining = 0;
+            try {
+                const pu = parseInt(localStorage.getItem('ad_global_penalty_until') || '0', 10);
+                penaltyRemaining = Math.ceil((pu - Date.now()) / 1000);
+            } catch(e) {}
+
+            if (penaltyRemaining > 0) {
+                [btnSpin, btnScratch].forEach(b => b.disabled = true);
+                const updatePenalty = () => {
+                    try {
+                        const pu = parseInt(localStorage.getItem('ad_global_penalty_until') || '0', 10);
+                        const rem = Math.ceil((pu - Date.now()) / 1000);
+                        if (rem <= 0) {
+                            _adClearTimers();
+                            [btnSpin, btnScratch].forEach(b => b.disabled = false);
+                            if (lblSpin)    lblSpin.textContent    = 'Watch Ad to Earn Spin Ticket';
+                            if (lblScratch) lblScratch.textContent = 'Watch Ad to Earn Scratch Card';
+                            [cdSpin, cdScratch].forEach(el => { if(el) el.style.display = 'none'; });
+                            refreshAdRewardButtons();
+                            return;
+                        }
+                        const txt = `⚠️ Penalty Lock: ${rem}s`;
+                        if (lblSpin)    lblSpin.textContent    = txt;
+                        if (lblScratch) lblScratch.textContent = txt;
+                    } catch(e) {}
+                };
+                updatePenalty();
+                _adPenaltyInterval = setInterval(updatePenalty, 1000);
+                return;
+            }
+
+            // Fetch status
+            const status = await fetchAdRewardStatus(true);
+
+            if (!status) {
+                // Network error — show generic label, enable buttons
+                [btnSpin, btnScratch].forEach(b => b.disabled = false);
+                if (lblSpin)    lblSpin.textContent    = 'Watch Ad to Earn Spin Ticket';
+                if (lblScratch) lblScratch.textContent = 'Watch Ad to Earn Scratch Card';
+                return;
+            }
+
+            const spinDone  = (status.todaySpinLeft  !== undefined) && status.todaySpinLeft  <= 0;
+            const scratchDone = (status.todayScratchLeft !== undefined) && status.todayScratchLeft <= 0;
+            const cdActive  = status.canClaim === false && status.cooldownRemainingSeconds > 0;
+
+            // Spin button state
+            if (spinDone) {
+                btnSpin.disabled = true;
+                if (lblSpin) lblSpin.textContent = 'Daily Limit Reached (2/2)';
+                if (cdSpin) cdSpin.style.display = 'none';
+            } else if (cdActive) {
+                btnSpin.disabled = true;
+                if (cdSpin) { cdSpin.style.display = 'block'; }
+                let remSpin = status.cooldownRemainingSeconds;
+                if (lblSpin) lblSpin.textContent = `Next reward in ${_fmtMMSS(remSpin)}`;
+            } else {
+                btnSpin.disabled = false;
+                if (lblSpin) lblSpin.textContent = 'Watch Ad to Earn Spin Ticket';
+                if (cdSpin) cdSpin.style.display = 'none';
+            }
+
+            // Scratch button state
+            if (scratchDone) {
+                btnScratch.disabled = true;
+                if (lblScratch) lblScratch.textContent = 'Daily Limit Reached (2/2)';
+                if (cdScratch) cdScratch.style.display = 'none';
+            } else if (cdActive) {
+                btnScratch.disabled = true;
+                if (cdScratch) { cdScratch.style.display = 'block'; }
+                if (lblScratch) lblScratch.textContent = `Next reward in ${_fmtMMSS(status.cooldownRemainingSeconds)}`;
+            } else {
+                btnScratch.disabled = false;
+                if (lblScratch) lblScratch.textContent = 'Watch Ad to Earn Scratch Card';
+                if (cdScratch) cdScratch.style.display = 'none';
+            }
+
+            // Start single shared countdown if needed
+            if (cdActive && (!spinDone || !scratchDone)) {
+                let remaining = status.cooldownRemainingSeconds;
+                _adCdInterval = setInterval(() => {
+                    remaining--;
+                    const txt = `Next reward in ${_fmtMMSS(remaining)}`;
+                    if (!spinDone    && lblSpin)    lblSpin.textContent    = txt;
+                    if (!scratchDone && lblScratch) lblScratch.textContent = txt;
+                    if (!spinDone    && cdSpin)     cdSpin.style.display   = 'none'; // label IS the countdown
+                    if (!scratchDone && cdScratch)  cdScratch.style.display = 'none';
+                    if (remaining <= 0) {
+                        _adClearTimers();
+                        refreshAdRewardButtons();
+                    }
+                }, 1000);
+            }
+        }
+        window.refreshAdRewardButtons = refreshAdRewardButtons;
+
+        // Open the instruction modal for a given reward type
+        function openAdInstructionModal(rewardType) {
+            if (!_adModalInst) {
+                const modalEl = document.getElementById('adInstructionModal');
+                if (!modalEl) return;
+                _adModalInst = new bootstrap.Modal(modalEl);
+            }
+            const btnLaunch = document.getElementById('btnLaunchAdTask');
+            if (btnLaunch) {
+                // Store targetType on the button (remove old listeners by cloning)
+                const newBtn = btnLaunch.cloneNode(true);
+                btnLaunch.parentNode.replaceChild(newBtn, btnLaunch);
+                newBtn.addEventListener('click', () => {
+                    try {
+                        localStorage.setItem('ad_start_time', String(Date.now()));
+                        localStorage.setItem('ad_target_type', rewardType);
+                    } catch(e) {}
+                    window.open(AD_DIRECT_LINK, '_blank');
+                    _adModalInst.hide();
+                    // Update button to "verifying" state
+                    refreshAdRewardButtons();
+                });
+            }
+            _adModalInst.show();
+        }
+        window.openAdInstructionModal = openAdInstructionModal;
+
+        // Call /ad-reward/claim and credit reward locally
+        async function executeClaimRewardAPI(rewardType, staySeconds) {
+            if (!currentUser) return;
+            const rewardLabels = { spin_ticket: '🎟️ Spin Ticket', scratch_card: '⭐ Scratch Card', free_match_pass: '🎫 Free Match Pass' };
+            const rewardLabel = rewardLabels[rewardType] || 'Reward';
+            try {
+                const token = await currentUser.getIdToken();
+                const r = await fetch(`${AD_REWARD_BASE}/ad-reward/claim`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ rewardType, staySeconds })
+                });
+                const data = await r.json().catch(() => ({}));
+                if (!r.ok || data.error) {
+                    showToast(data.error || `⚠️ Claim failed. Please try again.`, 'error');
+                } else {
+                    showToast(`🎉 Task Verified! ${rewardLabel} credited successfully!`, 'success');
+                    // Instant local counter update
+                    if (rewardType === 'spin_ticket') {
+                        userProfile.spinTickets = (Number(userProfile.spinTickets) || 0) + 1;
+                        const el = document.getElementById('spinTicketsCountEl');
+                        if (el) el.textContent = userProfile.spinTickets;
+                        const el2 = document.getElementById('spinBtnTicketsEl');
+                        if (el2) el2.textContent = userProfile.spinTickets;
+                    } else if (rewardType === 'scratch_card') {
+                        userProfile.scratchCards = (Number(userProfile.scratchCards) || 0) + 1;
+                        const el = document.getElementById('scratchCardsCountEl');
+                        if (el) el.textContent = userProfile.scratchCards;
+                        const el2 = document.getElementById('scratchBtnCardsEl');
+                        if (el2) el2.textContent = userProfile.scratchCards;
+                    } else if (rewardType === 'free_match_pass') {
+                        userProfile.freeMatchPasses = (Number(userProfile.freeMatchPasses) || 0) + 1;
+                    }
+                    if (typeof updateUIForUser === 'function') updateUIForUser();
+                }
+                // Force status refresh and restart cooldown timer
+                _adRewardStatusCache = null;
+                refreshAdRewardButtons();
+            } catch(e) {
+                showToast('⚠️ Network error. Your pass may still be processing.', 'error');
+                _adRewardStatusCache = null;
+                refreshAdRewardButtons();
+            }
+        }
+
+        // App resume / visibility check — verify ad completion
+        function _handleAdReturn() {
+            let startTime, targetType;
+            try {
+                startTime  = parseInt(localStorage.getItem('ad_start_time')  || '0', 10);
+                targetType = localStorage.getItem('ad_target_type') || '';
+                if (!startTime || !targetType) return;
+                localStorage.removeItem('ad_start_time');
+                localStorage.removeItem('ad_target_type');
+            } catch(e) { return; }
+
+            const staySeconds = Math.floor((Date.now() - startTime) / 1000);
+
+            if (staySeconds < 15) {
+                // FAIL: penalty lock
+                try { localStorage.setItem('ad_global_penalty_until', String(Date.now() + 90000)); } catch(e) {}
+                showToast('⚠️ Task Incomplete: Aap 15 seconds se pehle wapas aa gaye. 90 seconds penalty lock lag gaya hai.', 'error');
+                refreshAdRewardButtons();
+            } else {
+                // SUCCESS
+                executeClaimRewardAPI(targetType, staySeconds);
+            }
+        }
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') _handleAdReturn(); });
+        window.addEventListener('focus', _handleAdReturn);
+
+        // Wire up Watch Ad buttons
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnSpin    = document.getElementById('btnWatchAdSpin');
+            const btnScratch = document.getElementById('btnWatchAdScratch');
+            if (btnSpin)    btnSpin.addEventListener('click',    () => openAdInstructionModal('spin_ticket'));
+            if (btnScratch) btnScratch.addEventListener('click', () => openAdInstructionModal('scratch_card'));
+        });
+
+        // END SPONSOR AD REWARD ENGINE
+        // =====================================================================
 
         // 6. Vignette helper — attach to nav tab switches & modal opens/closes
         function triggerVignetteWithCooldown() {
@@ -5256,8 +5559,14 @@ if (themeContainer) themeContainer.style.display = 'block';
                 if(['ongoing','upcoming'].includes(t.status)) ipBtn = `<button class="btn-custom btn-primary-gradient mt-2 w-100 btn-idpass" data-id="${id}">Room ID & Pass</button>`; 
             }
             else if(t.status === 'upcoming') {
-                if (maxP === 0 || remainingSlotsOverall > 0) { btn = `<button class="btn-custom btn-primary-gradient btn-join btn-hover-glow" data-id="${id}">${window.FMT_C(eFee)} Join</button>`; } 
-                else { btn = `<button class="btn-custom btn-outline-custom text-danger" style="border-color: #ef4444;" disabled>Match Full</button>`; }
+                if (maxP === 0 || remainingSlotsOverall > 0) {
+                    const isAdPass = t.entryType === 'ad_pass';
+                    const passReq = Number(t.requiredPasses) || 1;
+                    const userPasses = Number(userProfile?.freeMatchPasses) || 0;
+                    const btnLabel = isAdPass ? `<i class="bi bi-ticket-fill me-1"></i>${passReq} Pass Join` : `${window.FMT_C(eFee)} Join`;
+                    const hasEnoughPasses = !isAdPass || userPasses >= passReq;
+                    btn = `<button class="btn-custom btn-primary-gradient btn-join btn-hover-glow${isAdPass && !hasEnoughPasses ? ' btn-earn-pass' : ''}" data-id="${id}" data-is-adpass="${isAdPass}" data-pass-req="${passReq}">${btnLabel}</button>`;
+                } else { btn = `<button class="btn-custom btn-outline-custom text-danger" style="border-color: #ef4444;" disabled>Match Full</button>`; }
             }
             else { btn = `<button class="btn-custom btn-outline-custom" disabled>Closed</button>`; }
 
@@ -5283,7 +5592,7 @@ if (themeContainer) themeContainer.style.display = 'block';
                         </div>
                         <div class="text-center flex-fill d-flex flex-column justify-content-center align-items-center">
                             <span>Entry</span>
-                            <strong class="d-flex align-items-center text-main fs-6 mt-1">${eFee>0?window.FMT_C(eFee):'Free'}</strong>
+                            <strong class="d-flex align-items-center text-main fs-6 mt-1">${t.entryType==='ad_pass'?`<span class="badge bg-info text-dark" style="font-size:0.75rem;"><i class="bi bi-ticket-fill me-1"></i>${Number(t.requiredPasses)||1} Pass</span>`:eFee>0?window.FMT_C(eFee):'Free'}</strong>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between rounded-3 p-2 mb-3" style="background: rgba(128,128,128,0.05); border: 1px solid var(--border-glass); font-size: 0.75rem;">
@@ -5328,7 +5637,19 @@ if (themeContainer) themeContainer.style.display = 'block';
             });
 
             // ESPORTS SLOT SELECTION SYSTEM (NEW) — same button handles first Join and later "+ Add Entry"
-            card.querySelector('.btn-join')?.addEventListener('click', () => { 
+            card.querySelector('.btn-join')?.addEventListener('click', (joinEvt) => { 
+                // Ad pass match with insufficient passes → offer to earn a pass
+                const isAdPassBtn = joinEvt.currentTarget?.dataset?.isAdpass === 'true';
+                const passReqBtn = Number(joinEvt.currentTarget?.dataset?.passReq) || 1;
+                if (isAdPassBtn) {
+                    const userPassesNow = Number(userProfile?.freeMatchPasses) || 0;
+                    if (userPassesNow < passReqBtn) {
+                        if (confirm(`You need ${passReqBtn} Sponsor Pass${passReqBtn > 1 ? 'es' : ''} to join this match.\n\nYou currently have ${userPassesNow} pass${userPassesNow !== 1 ? 'es' : ''}.\n\nWatch Ad now to earn a pass?`)) {
+                            openAdInstructionModal('free_match_pass');
+                        }
+                        return;
+                    }
+                }
                 getEl('dynamicPlayerInputsContainer').innerHTML = '';
                 getEl('joinTournamentIdInput').value = id; 
 
@@ -5340,8 +5661,15 @@ if (themeContainer) themeContainer.style.display = 'block';
                 getEl('joinTournamentForm').dataset.teamSize = teamSize;
                 getEl('joinTournamentForm').dataset.mode = isAddEntry ? 'add' : 'join';
                 getEl('joinTournamentForm').dataset.maxSelectable = maxSelectable;
+                getEl('joinTournamentForm').dataset.entryType = t.entryType || 'paid';
+                getEl('joinTournamentForm').dataset.requiredPasses = Number(t.requiredPasses) || 0;
                 // Entry fee ab selected slots ke hisaab se dynamically update hogi (see slot click handler below)
-                getEl('joinFeeDisplayEl').innerHTML = window.FMT_C(eFee); 
+                if (t.entryType === 'ad_pass') {
+                    const rp = Number(t.requiredPasses) || 1;
+                    getEl('joinFeeDisplayEl').innerHTML = `<span class="badge bg-info text-dark fs-6"><i class="bi bi-ticket-fill me-1"></i>${rp} Pass</span>`;
+                } else {
+                    getEl('joinFeeDisplayEl').innerHTML = window.FMT_C(eFee);
+                }
 
                 // Player detail blocks: sirf jitne slots aur liye ja sakte hain utne hi blocks bante hain
                 // Add Entry flow mein user khud pehle se Player 1..mySlotsCount hai, isliye naye blocks
@@ -5436,7 +5764,12 @@ if (themeContainer) themeContainer.style.display = 'block';
                                 uidInput?.removeAttribute('required');
                             }
                         }
-                        getEl('joinFeeDisplayEl').innerHTML = window.FMT_C(eFee * selectedSlots.length);
+                        if (t.entryType === 'ad_pass') {
+                            const rp = (Number(t.requiredPasses) || 1) * selectedSlots.length;
+                            getEl('joinFeeDisplayEl').innerHTML = `<span class="badge bg-info text-dark fs-6"><i class="bi bi-ticket-fill me-1"></i>${rp} Pass${rp>1?'es':''}</span>`;
+                        } else {
+                            getEl('joinFeeDisplayEl').innerHTML = window.FMT_C(eFee * selectedSlots.length);
+                        }
                     };
                     syncPlayerBlocksAndFee();
 
@@ -5724,6 +6057,7 @@ if (regEntries.length === 0) {
                     userProfile.winningCash = result.wallet.winningCash;
                     userProfile.bonusCash = result.wallet.bonusCash;
                     userProfile.xp = result.wallet.xp;
+                    if (result.wallet.freeMatchPasses !== undefined) userProfile.freeMatchPasses = result.wallet.freeMatchPasses;
                 }
                 if (result.joined) {
                     userProfile.joinedTournaments = userProfile.joinedTournaments || {};
