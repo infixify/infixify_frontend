@@ -3716,11 +3716,11 @@ if (themeContainer) themeContainer.style.display = 'block';
         const IN_APP_DIRECT_LINK = "https://uplcm.com/4/11996767";
 
         // 3a. WebView-resilient URL opener
-        //     window.open('...','_blank') silently fails in Android WebViews that do not
-        //     override shouldOverrideUrlLoading for _blank targets.
-        //     Strategy: try anchor click first (works when WebView intercepts link taps),
-        //     then fall back to window.location.href (always works — same tab navigation,
-        //     user hits Back to return to the app).
+        //     Creates a hidden anchor and programmatically clicks it.
+        //     Android WebView intercepts anchor-click navigations via
+        //     shouldOverrideUrlLoading, which opens the URL in the device browser.
+        //     NO location.href / location.assign fallback — that would replace the
+        //     app page with the ad landing page inside the WebView itself.
         function _openAdUrl(url) {
             if (!url) return;
             try {
@@ -3732,22 +3732,8 @@ if (themeContainer) themeContainer.style.display = 'block';
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
-
-                // Give the WebView 600 ms to act on the anchor click.
-                // If it did nothing (no new tab / no navigation detected), fall back to
-                // same-tab navigation so the ad URL definitely loads.
-                setTimeout(() => {
-                    try {
-                        // If we are still on the same page after 600 ms the anchor
-                        // click was swallowed — use location.href as the fallback.
-                        window.location.href = url;
-                    } catch(e2) {
-                        try { window.location.assign(url); } catch(e3) {}
-                    }
-                }, 600);
             } catch(e) {
-                // Absolute last resort
-                try { window.location.href = url; } catch(e2) {}
+                try { window.open(url, '_blank'); } catch(err) {}
             }
         }
 
@@ -3806,6 +3792,12 @@ if (themeContainer) themeContainer.style.display = 'block';
             try { localStorage.setItem('last_dl_ad_time', String(Date.now())); } catch(e) {}
             if (taskType === 'spin')    { tracker.spin    = (tracker.spin    || 0) + 1; _adSaveDailyTracker(tracker); }
             if (taskType === 'scratch') { tracker.scratch = (tracker.scratch || 0) + 1; _adSaveDailyTracker(tracker); }
+
+            // Write timer + type BEFORE opening URL so _handleAdReturn can verify dwell time
+            try {
+                localStorage.setItem('ad_start_time',  String(Date.now()));
+                localStorage.setItem('ad_target_type', taskType === 'spin' ? 'spin_ticket' : taskType === 'scratch' ? 'scratch_card' : taskType);
+            } catch(e) {}
 
             _openAdUrl(IN_APP_DIRECT_LINK);
             if (typeof onSuccessCallback === 'function') onSuccessCallback();
