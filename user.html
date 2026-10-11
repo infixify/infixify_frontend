@@ -989,6 +989,12 @@
 
         <!-- SPIN TO WIN (NAYA) -->
         <section id="spinwheel-section" class="section">
+            <!-- AD RESULT BANNER -->
+            <div id="spinAdResultBanner" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:18px 20px; margin:0 0 16px 0; border-radius:14px; text-align:center; background:rgba(0,0,0,0.85); border:1px solid rgba(255,255,255,0.1);">
+                <span class="ad-result-icon" style="font-size:2rem; margin-bottom:8px; display:block;"></span>
+                <p class="ad-result-msg" style="color:#fff; font-weight:600; font-size:0.9rem; margin:0 0 12px 0; white-space:pre-line;"></p>
+                <button onclick="document.getElementById('spinAdResultBanner').style.display='none'" style="background:#6366f1; color:#fff; border:none; border-radius:10px; padding:8px 24px; font-weight:700; font-size:0.85rem; cursor:pointer;">✖ Close</button>
+            </div>
             <div class="text-center pt-2 mb-3">
                 <h2 class="fw-bold mb-2">Spin to Win</h2>
                 <p class="text-muted small px-2 mb-0">Earn 1 free spin for every 5 matches (₹10 or more entry fee) you play whose results are declared. Cancelled matches don't count. Coins you win are credited directly to your Deposit Balance!</p>
@@ -1038,6 +1044,12 @@
 
         <!-- SCRATCH CARD (NAYA) -->
         <section id="scratchcard-section" class="section">
+            <!-- AD RESULT BANNER -->
+            <div id="scratchAdResultBanner" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:18px 20px; margin:0 0 16px 0; border-radius:14px; text-align:center; background:rgba(0,0,0,0.85); border:1px solid rgba(255,255,255,0.1);">
+                <span class="ad-result-icon" style="font-size:2rem; margin-bottom:8px; display:block;"></span>
+                <p class="ad-result-msg" style="color:#fff; font-weight:600; font-size:0.9rem; margin:0 0 12px 0; white-space:pre-line;"></p>
+                <button onclick="document.getElementById('scratchAdResultBanner').style.display='none'" style="background:#6366f1; color:#fff; border:none; border-radius:10px; padding:8px 24px; font-weight:700; font-size:0.85rem; cursor:pointer;">✖ Close</button>
+            </div>
             <div class="text-center pt-2 mb-3">
                 <h2 class="fw-bold mb-2">Scratch Card</h2>
                 <p class="text-muted small px-2 mb-0">Earn 1 free scratch card for every 7 matches (₹5 or more entry fee) you play whose results are declared. Just joining a match doesn't count — the match result must be declared. Cancelled matches don't count. Coins you win are credited directly to your Deposit Balance!</p>
@@ -1909,7 +1921,7 @@
       </div>
     </div>
 
-    <div class="modal fade" id="joinTournamentDetailsModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title text-gradient" id="joinModalTitleEl">Join Match</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="glass-card text-center mb-3 p-3"><span class="text-muted small fw-bold text-uppercase">Total Entry Fee</span><h3 id="joinFeeDisplayEl" style="color: var(--text-main);" class="fw-bold m-0 mt-1 glow-text d-flex justify-content-center align-items-center">0.00</h3></div><form id="joinTournamentForm"><input type="hidden" id="joinTournamentIdInput"><div id="dynamicPlayerInputsContainer"></div><button type="button" class="btn-custom btn-primary-gradient w-100 mt-2" id="confirmJoinBtn">Confirm & Pay</button></form></div></div></div></div>
+    <div class="modal fade" id="joinTournamentDetailsModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content" style="position:relative;"><div id="adResultPopup" style="display:none; position:absolute; inset:0; z-index:10; background:rgba(0,0,0,0.82); border-radius:inherit; flex-direction:column; align-items:center; justify-content:center; padding:28px; text-align:center;"><p id="adResultMsg" style="font-size:1rem; font-weight:600; color:#fff; margin-bottom:20px; white-space:pre-line;"></p><button id="adResultCloseBtn" style="background:#6366f1; color:#fff; border:none; border-radius:10px; padding:10px 28px; font-weight:700; font-size:0.95rem; cursor:pointer;">✖ Close</button></div><div class="modal-header"><h5 class="modal-title text-gradient" id="joinModalTitleEl">Join Match</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="glass-card text-center mb-3 p-3"><span class="text-muted small fw-bold text-uppercase">Total Entry Fee</span><h3 id="joinFeeDisplayEl" style="color: var(--text-main);" class="fw-bold m-0 mt-1 glow-text d-flex justify-content-center align-items-center">0.00</h3></div><form id="joinTournamentForm"><input type="hidden" id="joinTournamentIdInput"><div id="dynamicPlayerInputsContainer"></div><button type="button" class="btn-custom btn-primary-gradient w-100 mt-2" id="confirmJoinBtn">Confirm & Pay</button></form></div></div></div></div>
     
     <div class="modal fade" id="idPasswordModalEl" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-header"><h5 class="modal-title"><i class="bi bi-key-fill me-2" style="color:var(--accent-gold);"></i> Room Credentials</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body text-center"><p class="small text-muted mb-4">Credentials will be visible here before match starts.</p><div class="p-3 rounded-3 mb-3 d-flex justify-content-between align-items-center border border-secondary" style="background: rgba(128,128,128,0.1);"><div class="text-start"><span class="small text-muted d-block text-uppercase fw-bold">Room ID</span><strong style="color: var(--text-main);" class="fs-5" id="roomIdDisplayEl">Waiting...</strong></div><button class="btn btn-sm btn-outline-custom copy-btn" data-target="#roomIdDisplayEl"><i class="bi bi-clipboard"></i></button></div><div class="p-3 rounded-3 mb-4 d-flex justify-content-between align-items-center border border-secondary" style="background: rgba(128,128,128,0.1);"><div class="text-start"><span class="small text-muted d-block text-uppercase fw-bold">Password</span><strong style="color: var(--text-main);" class="fs-5" id="roomPasswordDisplayEl">Waiting...</strong></div><button class="btn btn-sm btn-outline-custom copy-btn" data-target="#roomPasswordDisplayEl"><i class="bi bi-clipboard"></i></button></div></div></div></div></div>
 
@@ -3766,7 +3778,7 @@ if (themeContainer) themeContainer.style.display = 'block';
 
         // =====================================================================
         // SPONSOR AD REWARD ENGINE (Backend-verified: /ad-reward/status + /ad-reward/claim)
-        // Covers: spin_ticket, scratch_card, free_match_pass
+        // Covers: spin_ticket, scratch_card
         // =====================================================================
         const AD_REWARD_BASE = 'https://infixify-push.onrender.com';
         const AD_DIRECT_LINK = 'https://uplcm.com/4/11996767';
@@ -3919,6 +3931,18 @@ if (themeContainer) themeContainer.style.display = 'block';
                 if (!modalEl) return;
                 _adModalInst = new bootstrap.Modal(modalEl);
             }
+
+            // Customize modal title and content per reward type
+            const titleEl = document.querySelector('#adInstructionModal .modal-title');
+            if (titleEl) {
+                titleEl.innerHTML = rewardType === 'free_match'
+                    ? '<i class="bi bi-controller me-2"></i>Watch Ad to Join Match'
+                    : '<i class="bi bi-gift-fill me-2"></i>Unlock Sponsor Reward';
+            }
+            // Hide extra bonus section for free_match (not relevant)
+            const bonusSection = document.querySelector('#adInstructionModal .modal-body > div:nth-child(2)');
+            if (bonusSection) bonusSection.style.display = rewardType === 'free_match' ? 'none' : '';
+
             const btnLaunch = document.getElementById('btnLaunchAdTask');
             if (btnLaunch) {
                 // Store targetType on the button (remove old listeners by cloning)
@@ -3931,8 +3955,8 @@ if (themeContainer) themeContainer.style.display = 'block';
                     } catch(e) {}
                     window.open(AD_DIRECT_LINK, '_blank');
                     _adModalInst.hide();
-                    // Update button to "verifying" state
-                    refreshAdRewardButtons();
+                    // For spin/scratch update their buttons; for free_match skip (join modal handles it)
+                    if (rewardType !== 'free_match') refreshAdRewardButtons();
                 });
             }
             _adModalInst.show();
@@ -3942,7 +3966,7 @@ if (themeContainer) themeContainer.style.display = 'block';
         // Call /ad-reward/claim and credit reward locally
         async function executeClaimRewardAPI(rewardType, staySeconds) {
             if (!currentUser) return;
-            const rewardLabels = { spin_ticket: '🎟️ Spin Ticket', scratch_card: '⭐ Scratch Card', free_match_pass: '🎫 Free Match Pass' };
+            const rewardLabels = { spin_ticket: '🎟️ Spin Ticket', scratch_card: '⭐ Scratch Card' };
             const rewardLabel = rewardLabels[rewardType] || 'Reward';
             try {
                 const token = await currentUser.getIdToken();
@@ -3969,8 +3993,6 @@ if (themeContainer) themeContainer.style.display = 'block';
                         if (el) el.textContent = userProfile.scratchCards;
                         const el2 = document.getElementById('scratchBtnCardsEl');
                         if (el2) el2.textContent = userProfile.scratchCards;
-                    } else if (rewardType === 'free_match_pass') {
-                        userProfile.freeMatchPasses = (Number(userProfile.freeMatchPasses) || 0) + 1;
                     }
                     if (typeof updateUIForUser === 'function') updateUIForUser();
                 }
@@ -3984,7 +4006,64 @@ if (themeContainer) themeContainer.style.display = 'block';
             }
         }
 
-        // App resume / visibility check — verify ad completion
+        // ── RESULT DISPLAY HELPERS ──────────────────────────────────────────
+
+        // Show a result banner on the spin or scratch section
+        function _showSectionResultBanner(sectionId, outcome, msg) {
+            const bannerId = sectionId === 'spinwheel-section' ? 'spinAdResultBanner' : 'scratchAdResultBanner';
+            const banner = document.getElementById(bannerId);
+            if (!banner) return;
+            const msgEl = banner.querySelector('.ad-result-msg');
+            const iconEl = banner.querySelector('.ad-result-icon');
+            if (msgEl) msgEl.textContent = msg;
+            if (iconEl) iconEl.textContent = outcome === 'success' ? '🎉' : '⚠️';
+            banner.style.display = 'flex';
+            setTimeout(() => { banner.style.display = 'none'; }, 7000);
+        }
+
+        // Show result popup inside the join modal (free_match)
+        function _showFreeMatchPopup(msg) {
+            const popup = document.getElementById('adResultPopup');
+            const msgEl = document.getElementById('adResultMsg');
+            const closeBtn = document.getElementById('adResultCloseBtn');
+            if (!popup || !msgEl) return;
+            msgEl.textContent = msg;
+            popup.style.display = 'flex';
+            if (closeBtn) closeBtn.onclick = () => { popup.style.display = 'none'; };
+        }
+
+        // Update the confirmJoinBtn label based on current ad progress/penalty state
+        function _updateFreeMatchBtn(watched, required) {
+            const btn = document.getElementById('confirmJoinBtn');
+            if (!btn) return;
+            // Check global penalty
+            let penaltyUntil = 0;
+            try { penaltyUntil = parseInt(localStorage.getItem('ad_global_penalty_until') || '0', 10); } catch(e) {}
+            if (penaltyUntil > Date.now()) {
+                const secsLeft = Math.ceil((penaltyUntil - Date.now()) / 1000);
+                btn.innerHTML = `🔒 Penalty: ${secsLeft}s`;
+                btn.disabled = true;
+                const penTimer = setInterval(() => {
+                    const s = Math.ceil((penaltyUntil - Date.now()) / 1000);
+                    if (s <= 0) { clearInterval(penTimer); _updateFreeMatchBtn(watched, required); return; }
+                    const b = document.getElementById('confirmJoinBtn');
+                    if (b) b.innerHTML = `🔒 Penalty: ${s}s`;
+                }, 1000);
+                return;
+            }
+            if (watched >= required) {
+                btn.innerHTML = `✅ Join Match (Free)`;
+                btn.disabled = false;
+            } else {
+                btn.innerHTML = `▶ Watch Ad to Unlock (${watched}/${required})`;
+                btn.disabled = false;
+            }
+        }
+
+        // ── MAIN AD RETURN HANDLER ───────────────────────────────────────────
+        // Uses Date.now() (real wall clock) so accurate even after app kill.
+        // Thresholds: <13s = too fast (penalty), 13s–30min = success, >30min = timeout (penalty)
+        // UI shows "15 seconds" — 13s is internal threshold user doesn't see.
         function _handleAdReturn() {
             let startTime, targetType;
             try {
@@ -3995,16 +4074,77 @@ if (themeContainer) themeContainer.style.display = 'block';
                 localStorage.removeItem('ad_target_type');
             } catch(e) { return; }
 
-            const staySeconds = Math.floor((Date.now() - startTime) / 1000);
+            const elapsed    = Date.now() - startTime; // always accurate — real wall clock
+            const elapsedSec = Math.floor(elapsed / 1000);
+            const THIRTY_MIN = 30 * 60 * 1000;
 
-            if (staySeconds < 15) {
-                // FAIL: penalty lock
+            // ── FREE MATCH CASE ──────────────────────────────────────────────
+            if (targetType === 'free_match') {
+                const form     = document.getElementById('joinTournamentForm');
+                const tid      = form?.dataset?.tournamentId || '';
+                const required = parseInt(form?.dataset?.requiredAds || '3', 10);
+                const progressKey = `free_match_progress_${tid}`;
+
+                if (elapsed > THIRTY_MIN) {
+                    // TIMEOUT: too late
+                    try { localStorage.setItem('ad_global_penalty_until', String(Date.now() + 90000)); } catch(e) {}
+                    _showFreeMatchPopup(`⏱️ Session Expired\nYou were away for over 30 minutes.\nThis attempt was not counted.\nA 90-second penalty has been applied.`);
+                    _updateFreeMatchBtn(0, required);
+
+                } else if (elapsedSec < 13) {
+                    // TOO FAST: penalty
+                    try { localStorage.setItem('ad_global_penalty_until', String(Date.now() + 90000)); } catch(e) {}
+                    _showFreeMatchPopup(`⚠️ Task Incomplete\nYou returned before 15 seconds.\nA 90-second penalty lock has been applied.`);
+                    _updateFreeMatchBtn(0, required);
+
+                } else {
+                    // SUCCESS: increment progress
+                    let watched = 0;
+                    try { watched = parseInt(localStorage.getItem(progressKey) || '0', 10) || 0; } catch(e) {}
+                    watched++;
+                    try { localStorage.setItem(progressKey, String(watched)); } catch(e) {}
+                    const remaining = required - watched;
+                    const msg = remaining > 0
+                        ? `🎉 Ad watched! ${watched}/${required} complete.
+${remaining} more to go.`
+                        : `🎉 All ads watched!
+Tap Join to enter the match.`;
+                    _showFreeMatchPopup(msg);
+                    _updateFreeMatchBtn(watched, required);
+                }
+                return;
+            }
+
+            // ── SPIN / SCRATCH CASE ──────────────────────────────────────────
+            if (elapsed > THIRTY_MIN) {
+                // TIMEOUT
                 try { localStorage.setItem('ad_global_penalty_until', String(Date.now() + 90000)); } catch(e) {}
-                showToast('⚠️ Task Incomplete: Aap 15 seconds se pehle wapas aa gaye. 90 seconds penalty lock lag gaya hai.', 'error');
+                const msg = `⏱️ Session Expired\nYou were away for over 30 minutes.\nThis attempt was not counted.\nA 90-second penalty has been applied.`;
+                if (targetType === 'spin_ticket')  { _showSectionResultBanner('spinwheel-section',  'fail', msg); if(typeof showSection==='function') showSection('spinwheel-section'); }
+                if (targetType === 'scratch_card') { _showSectionResultBanner('scratchcard-section','fail', msg); if(typeof showSection==='function') showSection('scratchcard-section'); }
                 refreshAdRewardButtons();
+
+            } else if (elapsedSec < 13) {
+                // TOO FAST
+                try { localStorage.setItem('ad_global_penalty_until', String(Date.now() + 90000)); } catch(e) {}
+                const msg = `⚠️ Task Incomplete\nYou returned before 15 seconds.\nA 90-second penalty lock has been applied.`;
+                if (targetType === 'spin_ticket')  { _showSectionResultBanner('spinwheel-section',  'fail', msg); if(typeof showSection==='function') showSection('spinwheel-section'); }
+                if (targetType === 'scratch_card') { _showSectionResultBanner('scratchcard-section','fail', msg); if(typeof showSection==='function') showSection('scratchcard-section'); }
+                refreshAdRewardButtons();
+
             } else {
-                // SUCCESS
-                executeClaimRewardAPI(targetType, staySeconds);
+                // SUCCESS — claim via API, show result after API responds
+                const _origExecute = executeClaimRewardAPI;
+                // Wrap: show banner after claim
+                executeClaimRewardAPI(targetType, elapsedSec).then?.(() => {}).catch?.(() => {});
+                if (targetType === 'spin_ticket') {
+                    if(typeof showSection==='function') showSection('spinwheel-section');
+                    // Banner shown after short delay to let API call settle
+                    setTimeout(() => _showSectionResultBanner('spinwheel-section', 'success', `🎉 Task Verified!\nSpin Ticket credited successfully!`), 800);
+                } else if (targetType === 'scratch_card') {
+                    if(typeof showSection==='function') showSection('scratchcard-section');
+                    setTimeout(() => _showSectionResultBanner('scratchcard-section', 'success', `🎉 Task Verified!\nScratch Card credited successfully!`), 800);
+                }
             }
         }
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') _handleAdReturn(); });
@@ -4924,7 +5064,14 @@ if (themeContainer) themeContainer.style.display = 'block';
         }
 
         // ================= WALLET HISTORY =================
+        // Internal non-cash currencies to hide from wallet history
+        const INTERNAL_CURRENCIES = ['spin_ticket', 'scratch_ticket'];
+        const INTERNAL_TX_TYPES   = ['ticket_consume'];
+
         function buildTxnCardHtml(t) {
+            // Skip internal ticket/pass transactions — not real money, confuses users
+            if (INTERNAL_CURRENCIES.includes(t.currency) || INTERNAL_TX_TYPES.includes(t.type)) return '';
+
             let isD = ['Deposit', 'Refund', 'Gift Code', 'Manual Deposit', 'Winnings', 'Referral Bonus', 'Lottery Winnings', 'Level Reward', 'Scratch Card', 'Spin to Win', 'Weekly Leaderboard Reward'].includes(t.type);
             
             // Check if it's a negative wallet update
@@ -5089,6 +5236,8 @@ if (themeContainer) themeContainer.style.display = 'block';
             const persistedWinMatchNames = new Set(); // NAYA: Winnings duplication rokne ke liye
             
             walletPersistedTxns.forEach(tx => {
+                // Skip internal ticket/pass ledger entries — not real wallet money
+                if (INTERNAL_CURRENCIES.includes(tx.currency) || INTERNAL_TX_TYPES.includes(tx.type)) return;
                 userTxns.push({ ...tx, status: tx.status === 'success' ? 'Success' : tx.status, time: tx.timestamp || 0, adminNote: tx.matchName });
                 if (tx.matchId) persistedWinMatchIds.add(tx.matchId);
                 if (tx.matchName) persistedWinMatchNames.add(tx.matchName);
@@ -5560,12 +5709,8 @@ if (themeContainer) themeContainer.style.display = 'block';
             }
             else if(t.status === 'upcoming') {
                 if (maxP === 0 || remainingSlotsOverall > 0) {
-                    const isAdPass = t.entryType === 'ad_pass';
-                    const passReq = Number(t.requiredPasses) || 1;
-                    const userPasses = Number(userProfile?.freeMatchPasses) || 0;
-                    const btnLabel = isAdPass ? `<i class="bi bi-ticket-fill me-1"></i>${passReq} Pass Join` : `${window.FMT_C(eFee)} Join`;
-                    const hasEnoughPasses = !isAdPass || userPasses >= passReq;
-                    btn = `<button class="btn-custom btn-primary-gradient btn-join btn-hover-glow${isAdPass && !hasEnoughPasses ? ' btn-earn-pass' : ''}" data-id="${id}" data-is-adpass="${isAdPass}" data-pass-req="${passReq}">${btnLabel}</button>`;
+                    const btnLabel = eFee > 0 ? `${window.FMT_C(eFee)} Join` : `Free Join`;
+                    btn = `<button class="btn-custom btn-primary-gradient btn-join btn-hover-glow" data-id="${id}">${btnLabel}</button>`;
                 } else { btn = `<button class="btn-custom btn-outline-custom text-danger" style="border-color: #ef4444;" disabled>Match Full</button>`; }
             }
             else { btn = `<button class="btn-custom btn-outline-custom" disabled>Closed</button>`; }
@@ -5592,7 +5737,7 @@ if (themeContainer) themeContainer.style.display = 'block';
                         </div>
                         <div class="text-center flex-fill d-flex flex-column justify-content-center align-items-center">
                             <span>Entry</span>
-                            <strong class="d-flex align-items-center text-main fs-6 mt-1">${t.entryType==='ad_pass'?`<span class="badge bg-info text-dark" style="font-size:0.75rem;"><i class="bi bi-ticket-fill me-1"></i>${Number(t.requiredPasses)||1} Pass</span>`:eFee>0?window.FMT_C(eFee):'Free'}</strong>
+                            <strong class="d-flex align-items-center text-main fs-6 mt-1">${eFee>0?window.FMT_C(eFee):'Free'}</strong>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between rounded-3 p-2 mb-3" style="background: rgba(128,128,128,0.05); border: 1px solid var(--border-glass); font-size: 0.75rem;">
@@ -5638,18 +5783,7 @@ if (themeContainer) themeContainer.style.display = 'block';
 
             // ESPORTS SLOT SELECTION SYSTEM (NEW) — same button handles first Join and later "+ Add Entry"
             card.querySelector('.btn-join')?.addEventListener('click', (joinEvt) => { 
-                // Ad pass match with insufficient passes → offer to earn a pass
-                const isAdPassBtn = joinEvt.currentTarget?.dataset?.isAdpass === 'true';
-                const passReqBtn = Number(joinEvt.currentTarget?.dataset?.passReq) || 1;
-                if (isAdPassBtn) {
-                    const userPassesNow = Number(userProfile?.freeMatchPasses) || 0;
-                    if (userPassesNow < passReqBtn) {
-                        if (confirm(`You need ${passReqBtn} Sponsor Pass${passReqBtn > 1 ? 'es' : ''} to join this match.\n\nYou currently have ${userPassesNow} pass${userPassesNow !== 1 ? 'es' : ''}.\n\nWatch Ad now to earn a pass?`)) {
-                            openAdInstructionModal('free_match_pass');
-                        }
-                        return;
-                    }
-                }
+
                 getEl('dynamicPlayerInputsContainer').innerHTML = '';
                 getEl('joinTournamentIdInput').value = id; 
 
@@ -5661,15 +5795,8 @@ if (themeContainer) themeContainer.style.display = 'block';
                 getEl('joinTournamentForm').dataset.teamSize = teamSize;
                 getEl('joinTournamentForm').dataset.mode = isAddEntry ? 'add' : 'join';
                 getEl('joinTournamentForm').dataset.maxSelectable = maxSelectable;
-                getEl('joinTournamentForm').dataset.entryType = t.entryType || 'paid';
-                getEl('joinTournamentForm').dataset.requiredPasses = Number(t.requiredPasses) || 0;
-                // Entry fee ab selected slots ke hisaab se dynamically update hogi (see slot click handler below)
-                if (t.entryType === 'ad_pass') {
-                    const rp = Number(t.requiredPasses) || 1;
-                    getEl('joinFeeDisplayEl').innerHTML = `<span class="badge bg-info text-dark fs-6"><i class="bi bi-ticket-fill me-1"></i>${rp} Pass</span>`;
-                } else {
-                    getEl('joinFeeDisplayEl').innerHTML = window.FMT_C(eFee);
-                }
+                // Entry fee display
+                getEl('joinFeeDisplayEl').innerHTML = eFee > 0 ? window.FMT_C(eFee) : 'Free';
 
                 // Player detail blocks: sirf jitne slots aur liye ja sakte hain utne hi blocks bante hain
                 // Add Entry flow mein user khud pehle se Player 1..mySlotsCount hai, isliye naye blocks
@@ -5764,12 +5891,7 @@ if (themeContainer) themeContainer.style.display = 'block';
                                 uidInput?.removeAttribute('required');
                             }
                         }
-                        if (t.entryType === 'ad_pass') {
-                            const rp = (Number(t.requiredPasses) || 1) * selectedSlots.length;
-                            getEl('joinFeeDisplayEl').innerHTML = `<span class="badge bg-info text-dark fs-6"><i class="bi bi-ticket-fill me-1"></i>${rp} Pass${rp>1?'es':''}</span>`;
-                        } else {
-                            getEl('joinFeeDisplayEl').innerHTML = window.FMT_C(eFee * selectedSlots.length);
-                        }
+                        getEl('joinFeeDisplayEl').innerHTML = eFee > 0 ? window.FMT_C(eFee * selectedSlots.length) : 'Free';
                     };
                     syncPlayerBlocksAndFee();
 
@@ -5795,6 +5917,26 @@ if (themeContainer) themeContainer.style.display = 'block';
                     });
                 }, 100);
 
+                // ── FREE MATCH AD-GATE: MODAL OPEN INIT ───────────────────
+                const form = document.getElementById('joinTournamentForm');
+                const isFreeMatch = Number(t.entryFee || 0) === 0;
+
+                if (isFreeMatch) {
+                    form.dataset.tournamentId = id;
+                    form.dataset.requiredAds = t.requiredAds || 3;
+                    const progressKey = `free_match_progress_${id}`;
+                    const watched = parseInt(localStorage.getItem(progressKey) || '0', 10);
+                    _updateFreeMatchBtn(watched, Number(t.requiredAds || 3));
+                } else {
+                    delete form.dataset.tournamentId;
+                    delete form.dataset.requiredAds;
+                    const btn = document.getElementById('confirmJoinBtn');
+                    if (btn) {
+                        btn.innerHTML = 'Confirm & Pay';
+                        btn.disabled = false;
+                    }
+                }
+                // ── END FREE MATCH AD-GATE: MODAL OPEN INIT ───────────────
                 modals.join.show(); 
             });
 
@@ -5949,37 +6091,19 @@ if (regEntries.length === 0) {
             if(tDat.status === 'canceled' || tDat.status === 'completed' || tDat.status === 'result') return showToast("Tournament closed", "error");
 
             // ── FREE MATCH AD UNLOCK GATE ──────────────────────────────────
-            // Free matches (entryFee === 0) require the user to watch a set
-            // number of Direct Link ads (window.adConfig.freeMatchReq) before
-            // the normal join flow is allowed. Progress is stored per-tournament
-            // in localStorage so it survives page refresh.
-            const entryFee = parseFloat(tDat.entryFee) || 0;
-            if (entryFee === 0 && window.adConfig.masterEnabled && !window.IS_VPN_ACTIVE) {
-                const progressKey = `free_match_progress_${tid}`;
-                let adsWatched = 0;
-                try { adsWatched = parseInt(localStorage.getItem(progressKey) || '0', 10) || 0; } catch(e) {}
-                const required = window.adConfig.freeMatchReq;
+            const form = document.getElementById('joinTournamentForm');
+            const _fmTid = form?.dataset?.tournamentId;
+            const requiredAds = parseInt(form?.dataset?.requiredAds || '3', 10);
 
-                if (adsWatched < required) {
-                    // Show progress on the button temporarily
-                    const btn = getEl('confirmJoinBtn');
-                    const originalLabel = btn.innerHTML;
-                    btn.innerHTML = `<i class="bi bi-play-circle-fill me-1"></i> Watch Ad to Unlock (${adsWatched}/${required})`;
+            if (_fmTid) {
+                const progressKey = `free_match_progress_${_fmTid}`;
+                const watched = parseInt(localStorage.getItem(progressKey) || '0', 10);
 
-                    triggerDirectLinkTask('free_match', () => {
-                        adsWatched++;
-                        try { localStorage.setItem(progressKey, String(adsWatched)); } catch(e) {}
-                        if (adsWatched >= required) {
-                            btn.innerHTML = `<i class="bi bi-unlock-fill me-1"></i> Confirm & Join (Unlocked!)`;
-                            showToast('🎉 Free match unlocked! Tap again to join.', 'success');
-                        } else {
-                            btn.innerHTML = `<i class="bi bi-play-circle-fill me-1"></i> Watch Ad to Unlock (${adsWatched}/${required})`;
-                            showToast(`Ad watched! ${required - adsWatched} more to unlock.`, 'info');
-                        }
-                    });
-                    return; // abort join; user must tap again after watching enough ads
+                if (watched < requiredAds) {
+                    openAdInstructionModal('free_match');
+                    return; // Stop here, do not submit or join yet
                 }
-                // All required ads watched — clear the counter and proceed to join
+                // watched >= requiredAds → clear progress, fall through to free join
                 try { localStorage.removeItem(progressKey); } catch(e) {}
             }
             // ── END FREE MATCH AD GATE ─────────────────────────────────────
@@ -6057,7 +6181,7 @@ if (regEntries.length === 0) {
                     userProfile.winningCash = result.wallet.winningCash;
                     userProfile.bonusCash = result.wallet.bonusCash;
                     userProfile.xp = result.wallet.xp;
-                    if (result.wallet.freeMatchPasses !== undefined) userProfile.freeMatchPasses = result.wallet.freeMatchPasses;
+
                 }
                 if (result.joined) {
                     userProfile.joinedTournaments = userProfile.joinedTournaments || {};
