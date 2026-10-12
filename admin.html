@@ -361,6 +361,17 @@
                     </div>
                 </div>
 
+                <!-- LIMITED ACCESS NOTICE — shown only when staff does NOT have overview_view permission -->
+                <div id="dsLimitedAccessNotice" style="display:none;">
+                    <div class="glass-card text-center py-5" style="border: 1px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.05);">
+                        <div style="width:72px; height:72px; border-radius:50%; background:rgba(239,68,68,0.12); border:2px solid rgba(239,68,68,0.35); display:flex; align-items:center; justify-content:center; margin:0 auto 20px;">
+                            <i class="bi bi-shield-lock-fill" style="font-size:2rem; color:var(--danger);"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2" style="color:var(--danger);">You Only Have Limited Access</h5>
+                        <p class="text-muted small mb-0" style="max-width:320px; margin:0 auto;">Dashboard overview is not included in your current permissions. Please contact the admin to request access.</p>
+                    </div>
+                </div>
+
                 <div class="row g-3 mb-4" id="dsFinanceRow">
                     <div class="col-6 col-md-3"><div class="glass-card stat-card m-0 p-3"><div class="stat-icon bg-opacity-25" style="background:var(--accent-glow); color:var(--accent-primary);"><i class="bi bi-people-fill"></i></div><div class="stat-details"><h6>Total Users</h6><h3 id="dsUsers">0</h3></div></div></div>
                     <div class="col-6 col-md-3"><div class="glass-card stat-card m-0 p-3"><div class="stat-icon bg-opacity-25" style="background:rgba(245, 158, 11, 0.15); color:var(--warning);"><i class="bi bi-joystick"></i></div><div class="stat-details"><h6>Live Matches</h6><h3 id="dsMatches">0</h3></div></div></div>
@@ -2907,6 +2918,24 @@ else if(id==='reports-export-section') {
         const RX_DS = async () => {
             E('dashStaffName').textContent = window.C_NAME || 'Staff'; E('dashStaffRole').textContent = window.C_ROLE || 'Admin'; E('dashPermCount').textContent = C_P.includes('all') ? 'All Access' : `${C_P.length} Assigned`;
             if(!window.timeIntv) { window.timeIntv = setInterval(() => { const el = E('dashTime'); if(el) el.textContent = new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', second:'2-digit'}); }, 1000); }
+            // Agar staff ke paas overview_view permission nahi hai to sirf welcome card dikhao,
+            // baaki saara data (stats rows, charts) hide karo aur limited access notice dikhao.
+            const hasOverview = CHK_P('overview_view');
+            if(E('dsLimitedAccessNotice')) E('dsLimitedAccessNotice').style.display = hasOverview ? 'none' : 'block';
+
+            // Agar overview_view nahi hai to yahan se return kar do — koi data fetch/render nahi
+            if(!hasOverview) {
+                // Sab stat rows hide kar do
+                document.querySelectorAll('#dashboard-section .row').forEach(row => {
+                    if(row.id !== 'dsFinanceRow' && row.id !== 'dsAnalyticsRow') row.style.display = 'none';
+                });
+                if(E('dsFinanceRow')) E('dsFinanceRow').style.display = 'none';
+                if(E('dsAnalyticsRow')) E('dsAnalyticsRow').style.display = 'none';
+                return;
+            }
+
+            // overview_view hai — sab rows wapas visible karo (agar pehle hide hui thi)
+            document.querySelectorAll('#dashboard-section .row').forEach(row => row.style.display = '');
             if(E('dsFinanceRow')) E('dsFinanceRow').style.display = (CHK_P('analytics') || CHK_P('dep_appr') || CHK_P('wd_appr')) ? 'flex' : 'none';
             if(E('dsAnalyticsRow')) E('dsAnalyticsRow').style.display = CHK_P('analytics') ? 'flex' : 'none';
             if(E('btnRunAudit')) E('btnRunAudit').style.display = window.IS_MAIN_ADMIN ? 'inline-flex' : 'none';
