@@ -237,6 +237,7 @@
                     <ul class="nav-group-list" id="grp-overview">
                         <li><a class="nav-link active" data-section="dashboard-section"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a></li>
                         <li><a class="nav-link" data-section="user-analytics-section"><i class="bi bi-pie-chart-fill"></i> Analytics</a></li>
+                        <li><a class="nav-link" data-section="user-activeness-section"><i class="bi bi-activity"></i> User Activeness</a></li>
                     </ul>
                 </div>
 
@@ -1229,6 +1230,65 @@
 </div>
                 </div>
                 <div class="glass-card p-0 overflow-hidden"><div class="table-responsive"><table class="table table-glass mb-0" id="usDB"><thead><tr><th>User Details</th><th>Referral Code</th><th>Wallet Balance</th><th>Status</th><th>Action</th></tr></thead><tbody id="tbUsers"></tbody></table></div></div>
+            </section>
+
+            <!-- ========== USER ACTIVENESS / DAU SECTION ========== -->
+            <section id="user-activeness-section" class="section">
+                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+                    <h3 class="fw-bold m-0"><i class="bi bi-activity text-success me-2"></i> User Activeness (DAU)</h3>
+                    <button class="btn-premium" id="btnRefreshDAU" style="background:var(--success);"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+                </div>
+
+                <!-- Today Stats Row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card stat-card m-0 p-3" style="border-left:4px solid var(--success);">
+                            <div class="stat-icon" style="background:rgba(16,185,129,0.15); color:var(--success);"><i class="bi bi-person-check-fill"></i></div>
+                            <div class="stat-details"><h6>Active Today</h6><h3 id="dauToday" class="text-success font-monospace">—</h3></div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card stat-card m-0 p-3" style="border-left:4px solid var(--info);">
+                            <div class="stat-icon" style="background:rgba(14,165,233,0.15); color:var(--info);"><i class="bi bi-calendar-week-fill"></i></div>
+                            <div class="stat-details"><h6>Active Last 7 Days</h6><h3 id="dauWeek" class="text-info font-monospace">—</h3></div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card stat-card m-0 p-3" style="border-left:4px solid var(--accent-primary);">
+                            <div class="stat-icon" style="background:rgba(59,130,246,0.15); color:var(--accent-primary);"><i class="bi bi-people-fill"></i></div>
+                            <div class="stat-details"><h6>Total Users</h6><h3 id="dauTotal" class="text-primary font-monospace">—</h3></div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="glass-card stat-card m-0 p-3" style="border-left:4px solid var(--warning);">
+                            <div class="stat-icon" style="background:rgba(245,158,11,0.15); color:var(--warning);"><i class="bi bi-graph-up-arrow"></i></div>
+                            <div class="stat-details"><h6>7-Day Avg DAU</h6><h3 id="dauAvg" class="text-warning font-monospace">—</h3></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Last 7 Days Bar Chart -->
+                <div class="glass-card mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold m-0"><i class="bi bi-bar-chart-fill text-success me-2"></i> Daily Active Users — Last 7 Days</h5>
+                        <small class="text-muted">Based on <code>lastDailyXpDate</code> — updated on every app open</small>
+                    </div>
+                    <div style="height:260px; position:relative;"><canvas id="dauBarChart"></canvas></div>
+                </div>
+
+                <!-- Today's Active Users List -->
+                <div class="glass-card p-0 overflow-hidden">
+                    <div class="p-3 border-bottom border-secondary d-flex justify-content-between align-items-center">
+                        <h6 class="m-0 fw-bold"><i class="bi bi-person-lines-fill text-success me-2"></i> Today's Active Users</h6>
+                        <span class="badge bg-success text-dark fw-bold" id="dauTodayBadge">0</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-glass mb-0">
+                            <thead><tr><th>User</th><th>Last Seen Today</th><th>Joined</th><th>Matches</th></tr></thead>
+                            <tbody id="tbDauToday"></tbody>
+                        </table>
+                    </div>
+                </div>
             </section>
 
             <section id="user-analytics-section" class="section"><h3 class="fw-bold mb-4"><i class="bi bi-pie-chart-fill text-primary me-2"></i> User Analytics</h3><div class="row g-4"><div class="col-lg-4"><div class="glass-card h-100 p-0"><div class="p-3 border-bottom border-secondary"><h6 class="m-0 fw-bold" style="color:var(--success);"><i class="bi bi-cash-coin me-2"></i> Top Spenders (Deposits)</h6></div><div class="table-responsive" id="bzSpenders"></div></div></div><div class="col-lg-4"><div class="glass-card h-100 p-0"><div class="p-3 border-bottom border-secondary"><h6 class="m-0 fw-bold" style="color:var(--info);"><i class="bi bi-joystick me-2"></i> Most Active Players</h6></div><div class="table-responsive" id="bzActive"></div></div></div><div class="col-lg-4"><div class="glass-card h-100 p-0"><div class="p-3 border-bottom border-secondary"><h6 class="m-0 fw-bold" style="color:var(--danger);"><i class="bi bi-heartbreak me-2"></i> Inactive Users (>15 Days)</h6></div><div class="table-responsive" id="bzDormant"></div></div></div></div></section>
@@ -2633,7 +2693,7 @@ window.generateFinancialCSV = async (previewOnly = false) => {
              if(C_P.includes('all')) { document.querySelectorAll('.nav-link').forEach(l=>{if(l.parentElement.tagName==='LI')l.parentElement.style.display='block';}); document.querySelectorAll('.nav-label').forEach(lbl => lbl.style.display = 'flex'); document.querySelectorAll('.nav-group').forEach(grp => grp.style.display = ''); if(E('btnCreateMatch')) E('btnCreateMatch').style.display = 'inline-flex'; if(E('btnBulkCreateMatch')) E('btnBulkCreateMatch').style.display = 'inline-flex'; if(E('btnBulkDeleteAn')) E('btnBulkDeleteAn').style.display = 'inline-flex'; return; }
              document.querySelectorAll('.nav-link').forEach(l => { const p=l.parentElement; if(p.tagName!=='LI')return; const s=l.dataset.section; let r=null;
                 if(s==='dashboard-section') r=['overview_view'];
-                else if(s==='user-analytics-section' || s==='transaction-history-section') r=['analytics'];
+                else if(s==='user-analytics-section' || s==='transaction-history-section' || s==='user-activeness-section') r=['analytics'];
                 else if(s==='games-section') r=['game_mgt', 'match_edit']; else if(s==='modes-section') r=['mode_mgt'];
                 else if(s==='tournaments-section') r=['match_add', 'match_edit', 'match_del', 'live_mgt'];
                 else if(s==='tournament-management-section') r=['match_edit', 'match_result', 'live_mgt'];
@@ -2661,7 +2721,7 @@ else if(s === 'reports-export-section') r = ['export_data', 'analytics'];
         const R_N = id => {
             let r=null;
             if(id==='dashboard-section') r=['overview_view'];
-            else if(id==='user-analytics-section' || id==='transaction-history-section') r=['analytics'];
+            else if(id==='user-analytics-section' || id==='transaction-history-section' || id==='user-activeness-section') r=['analytics'];
             else if(id==='games-section') r=['game_mgt', 'match_edit']; else if(id==='modes-section') r=['mode_mgt'];
             else if(id==='tournaments-section') r=['match_add', 'match_edit', 'match_del', 'live_mgt'];
             else if(id==='tournament-management-section') r=['match_edit', 'match_result', 'live_mgt'];
@@ -2872,6 +2932,7 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
                 else if(id==='vip-members-section') { await RX_VIP_MEMBERS(); }
                 else if(id==='vip-support-section') { await RX_VIP_SUPPORT(); }
                 else if(id==='user-analytics-section') await RX_UA();
+                else if(id==='user-activeness-section') await RX_DAU();
                 else if(id==='transaction-history-section') await RX_TX();
                 else if(id==='withdrawals-section') { await RX_WD(); }
                 else if(id==='deposit-section') { await RX_DP('pending'); await RX_DP('success'); await RX_DP('failed'); }
@@ -4695,6 +4756,149 @@ E('fmAdj').onsubmit = e => {
                 const dh=Object.values(UC).filter(u=>(u.lastLogin||u.createdAt)<ct).map(u=>`<tr><td>${FORMAT_USER(u.uid, u.email)}</td><td class="text-end text-danger"><small>${DT(u.lastLogin||u.createdAt)}</small></td></tr>`).join(''); 
                 E('bzDormant').innerHTML=`<table class="table table-glass mb-0"><tbody>${dh||'<tr><td class="text-center text-muted">Everyone is Active!</td></tr>'}</tbody></table>`; 
             } catch(e) {}
+        };
+
+        // ================= USER ACTIVENESS / DAU =================
+        // lastActiveAt field user.html me har app-open par write hota hai.
+        // Is function se admin Last 7 Days DAU chart + Today's active users list dekhta hai.
+        const RX_DAU = async () => {
+            try {
+                // Refresh button bind (sirf ek baar)
+                if(!E('btnRefreshDAU').dataset.bound) {
+                    E('btnRefreshDAU').dataset.bound = '1';
+                    E('btnRefreshDAU').addEventListener('click', () => A_EX(RX_DAU, E('btnRefreshDAU')));
+                }
+
+                // Users fresh fetch (cache bypass taaki real-time active count mile)
+                CLR_CACHE('users');
+                const uSnap = await fetchWithCache('users');
+                const tSnap = await fetchWithCache('tournaments');
+
+                // Match count per user (for table column)
+                const matchCount = {};
+                if(tSnap.exists()) tSnap.forEach(c => {
+                    const rp = c.val()?.registeredPlayers || {};
+                    Object.keys(rp).forEach(uid => { matchCount[uid] = (matchCount[uid] || 0) + 1; });
+                });
+
+                const now = Date.now();
+                const IST_OFFSET = 5.5 * 60 * 60 * 1000;
+
+                // IST mein aaj ki midnight (UTC ms)
+                const nowIST = new Date(now + IST_OFFSET);
+                const todayMidnightIST = Date.UTC(nowIST.getUTCFullYear(), nowIST.getUTCMonth(), nowIST.getUTCDate()) - IST_OFFSET;
+
+                // Last 7 days ke liye date labels aur buckets banao
+                const days = [];
+                for(let i = 6; i >= 0; i--) {
+                    const dayStart = todayMidnightIST - i * 86400000;
+                    const dayEnd   = dayStart + 86400000;
+                    const label = new Date(dayStart + IST_OFFSET).toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short', timeZone:'UTC' });
+                    days.push({ label, start: dayStart, end: dayEnd, count: 0 });
+                }
+
+                const todayStart = todayMidnightIST;
+                const week7Start = todayMidnightIST - 6 * 86400000;
+
+                let dauTodayList = []; // users active today
+                let dauWeekSet   = new Set(); // unique UIDs active in last 7 days
+                let totalUsers   = 0;
+
+                if(uSnap.exists()) {
+                    uSnap.forEach(c => {
+                        totalUsers++;
+                        const v = c.val() || {};
+                        const uid = c.key;
+
+                        // lastDailyXpDate = "Mon Oct 13 2026" string — Date.parse se ms milta hai
+                        const xpDateStr = v.lastDailyXpDate || '';
+                        const lat = xpDateStr ? Date.parse(xpDateStr) : 0;
+                        if(!lat || isNaN(lat)) return;
+
+                        // Kaunse day-bucket mein aata hai
+                        days.forEach(d => { if(lat >= d.start && lat < d.end) d.count++; });
+
+                        // Last 7 days set
+                        if(lat >= week7Start) dauWeekSet.add(uid);
+
+                        // Today list — lastDailyXpDate aaj ki date ke string se match karo
+                        const todayDateStr = new Date().toDateString(); // "Mon Oct 13 2026"
+                        if(xpDateStr === todayDateStr) {
+                            dauTodayList.push({
+                                uid,
+                                displayName: v.displayName || v.email || uid,
+                                email: v.email || '—',
+                                lastActiveAt: lat,
+                                createdAt: v.createdAt || 0,
+                                matches: matchCount[uid] || 0
+                            });
+                        }
+                    });
+                }
+
+                dauTodayList.sort((a, b) => b.lastActiveAt - a.lastActiveAt);
+
+                const todayCount  = dauTodayList.length;
+                const weekUnique  = dauWeekSet.size;
+                const avgDAU      = Math.round(days.reduce((s, d) => s + d.count, 0) / 7);
+
+                // Stat cards update
+                E('dauToday').textContent  = todayCount;
+                E('dauWeek').textContent   = weekUnique;
+                E('dauTotal').textContent  = totalUsers;
+                E('dauAvg').textContent    = avgDAU;
+                E('dauTodayBadge').textContent = todayCount;
+
+                // Bar chart
+                const ctx = document.getElementById('dauBarChart');
+                if(ctx && window.Chart) {
+                    if(window._dauChart) window._dauChart.destroy();
+                    window._dauChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: days.map(d => d.label),
+                            datasets: [{
+                                label: 'Active Users',
+                                data: days.map(d => d.count),
+                                backgroundColor: days.map((d, i) => i === 6
+                                    ? 'rgba(16,185,129,0.85)'   // today — green
+                                    : 'rgba(59,130,246,0.55)'), // past days — blue
+                                borderColor: days.map((d, i) => i === 6
+                                    ? 'rgba(16,185,129,1)'
+                                    : 'rgba(59,130,246,0.9)'),
+                                borderWidth: 2,
+                                borderRadius: 8,
+                            }]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} active users` } }
+                            },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { color: 'rgba(255,255,255,0.5)', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                                x: { ticks: { color: 'rgba(255,255,255,0.6)' }, grid: { display: false } }
+                            }
+                        }
+                    });
+                }
+
+                // Today's active users table
+                E('tbDauToday').innerHTML = dauTodayList.length
+                    ? dauTodayList.map(u => `
+                        <tr>
+                            <td>${FORMAT_USER(u.uid, u.email)}</td>
+                            <td><small class="text-success font-monospace">${DT(u.lastActiveAt)}</small></td>
+                            <td><small class="text-muted">${u.createdAt ? DT(u.createdAt) : '—'}</small></td>
+                            <td><span class="badge-premium badge-info">${u.matches} Matches</span></td>
+                        </tr>`).join('')
+                    : '<tr><td colspan="4" class="text-center text-muted py-4"><i class="bi bi-moon-stars me-2"></i>No users active today yet.</td></tr>';
+
+            } catch(e) {
+                console.error('RX_DAU error:', e);
+                TS('Failed to load DAU data: ' + e.message, 'error');
+            }
         };
 
         // Har transaction ko ek category tag deta hai taaki Transaction History
