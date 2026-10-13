@@ -1,5 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
+    <script>
+// =====================================================================
+// UNIVERSAL FORCE UPDATE & VERSION GATEKEEPER
+// =====================================================================
+(function() {
+    // Current Latest App Version
+    const LATEST_VERSION_NAME = "2.0";
+    const LATEST_VERSION_CODE = 4;
+
+    // Aap yahan check kar sakte hain ki agar ye Cloudflare page hai ya purana URL hai, 
+    // toh use seedha force update screen dikhao. 
+    // (Aap chaho toh yahan version code comparison bhi rakh sakte ho)
+    const isCloudflareDomain = window.location.hostname.includes('pages.dev');
+    
+    // Agar aapko lagta hai ki koi bhi user jo purana link khol raha hai use update milna chahiye:
+    const forceUpdateRequired = isCloudflareDomain; // Ya yahan apna version check condition daalein
+
+    if (forceUpdateRequired) {
+        const apkDownloadUrl = "https://github.com/infixify/infixify-releases/releases/download/v1.3/INFIXIFY.ESPORTS_1.2.apk";
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.innerHTML = `
+                <div style="position:fixed; inset:0; background:#060907; z-index:99999999; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; color:#fff; font-family:'Plus Jakarta Sans',sans-serif;">
+                    <div style="font-size:4rem; margin-bottom:16px;">🚀</div>
+                    <h2 style="font-weight:800; margin-bottom:12px; background:linear-gradient(135deg,#2ee6a6,#22d3d3); -webkit-background-clip:text; -webkit-text-fill-color:transparent; font-size:1.8rem;">Update Required</h2>
+                    <p style="color:#8fb89c; font-size:0.95rem; margin-bottom:28px; line-height:1.5; max-width:360px;">A newer and more secure version of INFIXIFY (${LATEST_VERSION_NAME}) is now live. Please download the latest update to continue.</p>
+                    <a href="${apkDownloadUrl}" style="background:linear-gradient(135deg,#2ee6a6,#22d3d3); color:#060907; padding:16px 32px; border-radius:16px; font-weight:800; text-decoration:none; box-shadow:0 0 25px rgba(46,230,166,0.35); width:100%; max-width:280px; display:block; font-size:1rem;">Download Latest APK (v${LATEST_VERSION_NAME})</a>
+                </div>
+            `;
+        });
+        throw new Error("Outdated Version Blocked");
+    }
+})();
+    </script>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
