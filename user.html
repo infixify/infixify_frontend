@@ -1,23 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
+<head>
     <script>
 // =====================================================================
-// UNIVERSAL FORCE UPDATE & VERSION GATEKEEPER
+// UNIVERSAL FORCE UPDATE & VERSION GATEKEEPER (CLOUDFLARE)
 // =====================================================================
 (function() {
-    // Current Latest App Version
     const LATEST_VERSION_NAME = "2.0";
     const LATEST_VERSION_CODE = 4;
-
-    // Aap yahan check kar sakte hain ki agar ye Cloudflare page hai ya purana URL hai, 
-    // toh use seedha force update screen dikhao. 
-    // (Aap chaho toh yahan version code comparison bhi rakh sakte ho)
-    const isCloudflareDomain = window.location.hostname.includes('pages.dev');
     
-    // Agar aapko lagta hai ki koi bhi user jo purana link khol raha hai use update milna chahiye:
-    const forceUpdateRequired = isCloudflareDomain; // Ya yahan apna version check condition daalein
+    // Agar ye Cloudflare pages ka domain hai, toh purane users ko force update screen dikhao
+    const isCloudflareDomain = window.location.hostname.includes('pages.dev');
 
-    if (forceUpdateRequired) {
+    if (isCloudflareDomain) {
         const apkDownloadUrl = "https://github.com/infixify/infixify-releases/releases/download/v1.3/INFIXIFY.ESPORTS_1.2.apk";
         
         document.addEventListener('DOMContentLoaded', () => {
@@ -34,7 +30,6 @@
     }
 })();
     </script>
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Premium Gaming Platform</title>
