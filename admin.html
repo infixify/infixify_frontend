@@ -623,6 +623,52 @@
                     
                     <button type="submit" class="btn-premium px-5 py-4 fs-5 w-100 shadow-lg text-uppercase fw-bold" style="letter-spacing: 2px;"><i class="bi bi-save2 me-2 fs-4"></i> Save All Settings</button>
                 </form>
+
+                <!-- AD NETWORK CONFIG -->
+                <form id="adConfigForm" class="mt-4">
+                    <div class="glass-card border-success">
+                        <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom border-glass">
+                            <h5 class="fw-bold m-0"><i class="bi bi-play-btn-fill text-success me-2"></i> Ad Network Settings (Monetag)</h5>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input fs-4 m-0" type="checkbox" id="adMasterEnabled" title="Master On/Off — sare ads ek saath band/chalu">
+                                <label class="form-check-label ms-2 text-muted small">Ads On/Off</label>
+                            </div>
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label text-info">Direct Link Cooldown <span class="text-muted small">(minutes)</span></label>
+                                <input type="number" class="form-control" id="adDlCooldown" min="1" max="60" placeholder="5">
+                                <small class="text-muted">Spin/Scratch/Free Match ads ke beech ka gap</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-info">Vignette Cooldown <span class="text-muted small">(minutes)</span></label>
+                                <input type="number" class="form-control" id="adVignetteCooldown" min="1" max="60" placeholder="5">
+                                <small class="text-muted">Nav switch / modal close pe Vignette ka gap</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-warning">Vignette Daily Limit</label>
+                                <input type="number" class="form-control" id="adVignetteDaily" min="1" max="50" placeholder="10">
+                                <small class="text-muted">Ek user ko roz max kitni baar Vignette dikhegi</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-warning">Free Match Ads Required</label>
+                                <input type="number" class="form-control" id="adFreeMatchReq" min="1" max="10" placeholder="3">
+                                <small class="text-muted">Free match join karne ke liye kitne ads dekhne honge</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-success">Daily Spin Ad Limit</label>
+                                <input type="number" class="form-control" id="adSpinLimit" min="1" max="20" placeholder="3">
+                                <small class="text-muted">Spin reward ke liye roz max ads</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-success">Daily Scratch Ad Limit</label>
+                                <input type="number" class="form-control" id="adScratchLimit" min="1" max="20" placeholder="3">
+                                <small class="text-muted">Scratch reward ke liye roz max ads</small>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-premium w-100 py-3 mt-4" style="background:var(--success);"><i class="bi bi-save2 me-2"></i> Save Ad Settings</button>
+                    </div>
+                </form>
             </section>
 
             <section id="management-tools-section" class="section">
@@ -3175,6 +3221,16 @@ else if(id==='reports-export-section') {
             E('currImgU').value = SET.currencyImage || '';
             if(SET.currencyImage) E('currImgPreview').innerHTML = `<img src="${SET.currencyImage}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">`; else E('currImgPreview').innerHTML = '<span class="fs-1 text-muted c-sym">₹</span>';
 
+            // Ad Network Config load
+            const AC = SET.adConfig || {};
+            E('adMasterEnabled').checked = AC.masterEnabled !== false;
+            E('adDlCooldown').value       = AC.dlCooldown       || 5;
+            E('adVignetteCooldown').value = AC.vignetteCooldown || 5;
+            E('adVignetteDaily').value    = AC.vignetteDaily    || 10;
+            E('adFreeMatchReq').value     = AC.freeMatchReq     || 3;
+            E('adSpinLimit').value        = AC.spinLimit        || 3;
+            E('adScratchLimit').value     = AC.scratchLimit     || 3;
+
             const AU = SET.aboutUs || {}; const AUC = AU.contact || {}; const AUF = AU.follow || {};
             E('auDetails').value = AU.details || ''; E('auMission').value = AU.mission || '';
             E('auContactWa').value = AUC.whatsapp || ''; E('auContactTg').value = AUC.telegram || ''; E('auContactIg').value = AUC.instagram || '';
@@ -3187,6 +3243,22 @@ else if(id==='reports-export-section') {
         };
 
         E('masterConfigForm').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('sys_set')) return TS('Unauthorized','error'); await update(ref(rd, 'settings'), {appName:E('cfName').value, logoUrl:E('cfLogo').value, minWithdraw:Number(E('cfWdMin').value), upiDetails:E('cfUpId').value, qrCodeUrl:E('cfUpQr').value, payment:{zap_key:E('cfZpKey').value, gateway_enabled:E('cfZpTog').checked, min_deposit:Number(E('cfZpMin').value), max_deposit:Number(E('cfZpMax').value)}, policyPrivacy:E('cfPriv').value, policyTerms:E('cfTrm').value, policyRefund:E('cfRef').value, policyFairPlay:E('cfFair').value, walletEnabled:E('visWallet').checked, leaderboardEnabled:E('visLeaderboard').checked, referralEnabled:E('visReferral').checked, supportEnabled:E('visSupport').checked, earningsEnabled:E('visEarnings').checked, tutorialsEnabled:E('visTutorials').checked, earnEnabled:E('visEarnTab').checked}); LOG_ACT('staff', 'Updated System Settings', ''); CLR_CACHE('settings'); TS('App Settings Saved'); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
+
+        E('adConfigForm').onsubmit = e => { e.preventDefault(); A_EX(async () => {
+            if(!CHK_P('sys_set')) return TS('Unauthorized','error');
+            await update(ref(rd, 'settings/adConfig'), {
+                masterEnabled:    E('adMasterEnabled').checked,
+                dlCooldown:       Number(E('adDlCooldown').value)       || 5,
+                vignetteCooldown: Number(E('adVignetteCooldown').value) || 5,
+                vignetteDaily:    Number(E('adVignetteDaily').value)    || 10,
+                freeMatchReq:     Number(E('adFreeMatchReq').value)     || 3,
+                spinLimit:        Number(E('adSpinLimit').value)        || 3,
+                scratchLimit:     Number(E('adScratchLimit').value)     || 3,
+            });
+            LOG_ACT('staff', 'Updated Ad Network Settings', '');
+            CLR_CACHE('settings');
+            TS('Ad Settings Saved ✅');
+        }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
         E('aboutUsConfigForm').onsubmit = e => { e.preventDefault(); A_EX(async () => {
             if(!CHK_P('sys_set')) return TS('Unauthorized','error');
