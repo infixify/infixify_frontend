@@ -670,6 +670,11 @@
                                 <input type="number" class="form-control" id="adScratchLimit" min="1" max="20" placeholder="2">
                                 <small class="text-muted">Scratch reward ke liye roz max ads</small>
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-danger">Popunder Gap <span class="text-muted small">(minutes)</span></label>
+                                <input type="number" class="form-control" id="adPopunderGap" min="1" max="120" placeholder="10">
+                                <small class="text-muted">Match join/details/leaderboard pe popunder ke beech ka minimum gap</small>
+                            </div>
                         </div>
                         <button type="submit" class="btn-premium w-100 py-3 mt-4" style="background:var(--success);"><i class="bi bi-save2 me-2"></i> Save Ad Settings</button>
                     </div>
@@ -3236,6 +3241,7 @@ else if(id==='reports-export-section') {
             E('adFmCooldown').value       = AC.fmCooldown       || 5;
             E('adSpinLimit').value        = AC.spinLimit        || 2;
             E('adScratchLimit').value     = AC.scratchLimit     || 2;
+            E('adPopunderGap').value      = AC.popunderGapMinutes || 10;
 
             const AU = SET.aboutUs || {}; const AUC = AU.contact || {}; const AUF = AU.follow || {};
             E('auDetails').value = AU.details || ''; E('auMission').value = AU.mission || '';
@@ -3260,7 +3266,8 @@ else if(id==='reports-export-section') {
                 vignetteDaily:    Number(E('adVignetteDaily').value)    || 10,
                 fmCooldown:       Number(E('adFmCooldown').value)       || 5,
                 spinLimit:        Number(E('adSpinLimit').value)        || 2,
-                scratchLimit:     Number(E('adScratchLimit').value)     || 2,
+                scratchLimit:        Number(E('adScratchLimit').value)        || 2,
+                popunderGapMinutes:  Number(E('adPopunderGap').value)          || 10,
             });
             LOG_ACT('staff', 'Updated Ad Network Settings', '');
             CLR_CACHE('settings');
