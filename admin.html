@@ -637,8 +637,13 @@
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <label class="form-label text-info">Direct Link Cooldown <span class="text-muted small">(minutes)</span></label>
-                                <input type="number" class="form-control" id="adDlCooldown" min="1" max="60" placeholder="5">
-                                <small class="text-muted">Spin/Scratch/Free Match ads ke beech ka gap</small>
+                                <input type="number" class="form-control" id="adDlCooldown" min="1" max="60" placeholder="15">
+                                <small class="text-muted">Spin/Scratch/Free Match ads ke beech ka global gap</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-info">Min Stay Time <span class="text-muted small">(seconds)</span></label>
+                                <input type="number" class="form-control" id="adMinStaySec" min="5" max="60" placeholder="15">
+                                <small class="text-muted">User ko ad page pe kam se kam kitne second rehna hoga</small>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-info">Vignette Cooldown <span class="text-muted small">(minutes)</span></label>
@@ -656,13 +661,18 @@
                                 <small class="text-muted">Free match join karne ke liye kitne ads dekhne honge</small>
                             </div>
                             <div class="col-md-6">
+                                <label class="form-label text-warning">Free Match Step Cooldown <span class="text-muted small">(minutes)</span></label>
+                                <input type="number" class="form-control" id="adFmCooldown" min="1" max="30" placeholder="5">
+                                <small class="text-muted">Free match ke har ad step ke beech ka gap</small>
+                            </div>
+                            <div class="col-md-6">
                                 <label class="form-label text-success">Daily Spin Ad Limit</label>
-                                <input type="number" class="form-control" id="adSpinLimit" min="1" max="20" placeholder="3">
+                                <input type="number" class="form-control" id="adSpinLimit" min="1" max="20" placeholder="2">
                                 <small class="text-muted">Spin reward ke liye roz max ads</small>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label text-success">Daily Scratch Ad Limit</label>
-                                <input type="number" class="form-control" id="adScratchLimit" min="1" max="20" placeholder="3">
+                                <input type="number" class="form-control" id="adScratchLimit" min="1" max="20" placeholder="2">
                                 <small class="text-muted">Scratch reward ke liye roz max ads</small>
                             </div>
                         </div>
@@ -3223,13 +3233,15 @@ else if(id==='reports-export-section') {
 
             // Ad Network Config load
             const AC = SET.adConfig || {};
-            E('adMasterEnabled').checked = AC.masterEnabled !== false;
-            E('adDlCooldown').value       = AC.dlCooldown       || 5;
+            E('adMasterEnabled').checked  = AC.masterEnabled !== false;
+            E('adDlCooldown').value       = AC.dlCooldown       || 15;
+            E('adMinStaySec').value       = AC.minStaySec       || 15;
             E('adVignetteCooldown').value = AC.vignetteCooldown || 5;
             E('adVignetteDaily').value    = AC.vignetteDaily    || 10;
             E('adFreeMatchReq').value     = AC.freeMatchReq     || 3;
-            E('adSpinLimit').value        = AC.spinLimit        || 3;
-            E('adScratchLimit').value     = AC.scratchLimit     || 3;
+            E('adFmCooldown').value       = AC.fmCooldown       || 5;
+            E('adSpinLimit').value        = AC.spinLimit        || 2;
+            E('adScratchLimit').value     = AC.scratchLimit     || 2;
 
             const AU = SET.aboutUs || {}; const AUC = AU.contact || {}; const AUF = AU.follow || {};
             E('auDetails').value = AU.details || ''; E('auMission').value = AU.mission || '';
@@ -3248,12 +3260,14 @@ else if(id==='reports-export-section') {
             if(!CHK_P('sys_set')) return TS('Unauthorized','error');
             await update(ref(rd, 'settings/adConfig'), {
                 masterEnabled:    E('adMasterEnabled').checked,
-                dlCooldown:       Number(E('adDlCooldown').value)       || 5,
+                dlCooldown:       Number(E('adDlCooldown').value)       || 15,
+                minStaySec:       Number(E('adMinStaySec').value)       || 15,
                 vignetteCooldown: Number(E('adVignetteCooldown').value) || 5,
                 vignetteDaily:    Number(E('adVignetteDaily').value)    || 10,
                 freeMatchReq:     Number(E('adFreeMatchReq').value)     || 3,
-                spinLimit:        Number(E('adSpinLimit').value)        || 3,
-                scratchLimit:     Number(E('adScratchLimit').value)     || 3,
+                fmCooldown:       Number(E('adFmCooldown').value)       || 5,
+                spinLimit:        Number(E('adSpinLimit').value)        || 2,
+                scratchLimit:     Number(E('adScratchLimit').value)     || 2,
             });
             LOG_ACT('staff', 'Updated Ad Network Settings', '');
             CLR_CACHE('settings');
