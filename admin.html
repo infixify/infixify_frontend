@@ -2760,6 +2760,11 @@ window.generateFinancialCSV = async (previewOnly = false) => {
                 else if(s==='tournament-management-section') r=['match_edit', 'match_result', 'live_mgt'];
                 else if(s==='match-presets-section') r=['match_add', 'match_edit'];
                 else if(s==='leaderboard-mgt-section') r=['ldr_mgt']; else if(s==='promotions-section' || s==='announcements-section') r=['promo_mgt'];
+                else if(s==='lottery-mgt-section') r=['promo_mgt', 'rdm_mgt'];
+                else if(s==='announcement-tiles-section') r=['promo_mgt'];
+                else if(s==='shop-products-section' || s==='shop-orders-section') r=['sys_set', 'user_mgt'];
+                else if(s==='support-tickets-section') r=['support_tickets', 'sup_mgt'];
+                else if(s==='pl-report-section') r=['analytics', 'dep_appr', 'wd_appr'];
                 else if(s==='level-rewards-section') r=['sys_set']; else if(s==='redeem-codes-section') r=['rdm_mgt']; else if(s==='coupons-section') r=['coup_mgt'];
                 else if(s==='referrals-section' || s==='demo-link-section') r=['ref_mgt'];
                 else if(s==='withdrawals-section') r=['wd_appr']; else if(s==='deposit-section' || s==='zapupi-status-section') r=['dep_appr'];
@@ -2788,6 +2793,11 @@ else if(s === 'reports-export-section') r = ['export_data', 'analytics'];
             else if(id==='tournament-management-section') r=['match_edit', 'match_result', 'live_mgt'];
             else if(id==='match-presets-section') r=['match_add', 'match_edit'];
             else if(id==='leaderboard-mgt-section') r=['ldr_mgt']; else if(id==='promotions-section' || id==='announcements-section') r=['promo_mgt'];
+            else if(id==='lottery-mgt-section') r=['promo_mgt', 'rdm_mgt'];
+            else if(id==='announcement-tiles-section') r=['promo_mgt'];
+            else if(id==='shop-products-section' || id==='shop-orders-section') r=['sys_set', 'user_mgt'];
+            else if(id==='support-tickets-section') r=['support_tickets', 'sup_mgt'];
+            else if(id==='pl-report-section') r=['analytics', 'dep_appr', 'wd_appr'];
             else if(id==='level-rewards-section') r=['sys_set']; else if(id==='redeem-codes-section') r=['rdm_mgt']; else if(id==='coupons-section') r=['coup_mgt'];
             else if(id==='referrals-section' || id==='demo-link-section') r=['ref_mgt'];
             else if(id==='withdrawals-section') r=['wd_appr']; else if(id==='deposit-section' || id==='zapupi-status-section') r=['dep_appr'];
@@ -2934,12 +2944,18 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
                 } else { 
                     window.SYS_BOOTED=false; 
                     E('mainDashboardArea').style.display='none'; 
-                    E('authContainer').style.display='flex'; 
+                    E('authContainer').style.display='flex';
+                    // FIX: MLD turant hide karo — login card dikhne ke liye Firebase call ka
+                    // intezaar karna zaruri nahi. adminConfig fetch hone ke baad setup/login
+                    // toggle silently ho jaata hai; agar fetch fail bhi ho toh login show karo.
+                    MLD(false);
                     get(ref(rd,'adminConfig')).then(c=>{ 
                         E('setupSection').style.display=(c&&c.exists())?'none':'block'; 
                         E('loginSection').style.display=(c&&c.exists())?'block':'none'; 
-                        MLD(false); 
-                    }).catch(()=>MLD(false)); 
+                    }).catch(()=>{ 
+                        E('setupSection').style.display='none'; 
+                        E('loginSection').style.display='block'; 
+                    }); 
                 }
             });
         } catch(err) { MLD(false); TS('Network failure on boot', 'error'); }
