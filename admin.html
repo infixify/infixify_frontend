@@ -2268,7 +2268,7 @@
         };
 
         let cachedAnnouncements = []; 
-        const E = i => document.getElementById(i) || { value:'', innerHTML:'', textContent:'', style:{}, classList:{add:()=>{},remove:()=>{},toggle:()=>{}}, checked:false, disabled:false, dispatchEvent:()=>{}, options:[], selectedIndex:0 };
+        var E = i => document.getElementById(i) || { value:'', innerHTML:'', textContent:'', style:{}, dataset:{}, classList:{add:()=>{},remove:()=>{},toggle:()=>{},contains:()=>false}, checked:false, disabled:false, readOnly:false, required:false, src:'', type:'', className:'', files:[], options:[], selectedIndex:0, addEventListener:()=>{}, removeEventListener:()=>{}, dispatchEvent:()=>{}, appendChild:()=>{}, remove:()=>{}, reset:()=>{}, focus:()=>{}, click:()=>{}, setAttribute:()=>{}, getAttribute:()=>null, querySelector:()=>null, querySelectorAll:()=>[], closest:()=>null };
         const TS = (m,t='success') => { const c=E('toastContainer'); if(!c) return; const e=document.createElement('div'); e.className=`custom-toast toast-${t}`; e.innerHTML=`<i class="bi bi-${t==='success'?'check-circle':'exclamation-triangle'}-fill fs-4 mt-1"></i> <div class="d-flex flex-column"><strong style="line-height:1.2; font-size:0.9rem;">System Notice</strong><span style="font-size:0.8rem; font-weight:500;" class="text-muted">${m}</span></div>`; c.appendChild(e); requestAnimationFrame(()=>e.classList.add('show')); setTimeout(()=>{ e.classList.remove('show'); setTimeout(()=>e.remove(), 400); }, 3500); };
         
         window.UI = window.UI || {}; window.UI.showToast = TS;
@@ -2316,12 +2316,12 @@
             LD(false);
         };
 
-        const LD = (s=true) => { const el = E('inlineLoader'); if(!el)return; if(s){ el.style.display='flex'; el.style.opacity='1'; }else{ el.style.opacity='0'; setTimeout(()=>el.style.display='none',300); } };
-        const MLD = (s=true) => { const el=E('masterLoader'); if(el) el.style.opacity = s?1:0; setTimeout(()=>el.style.display=s?'flex':'none', s?0:300); };
-        const DT = ts => ts ? new Date(Number(ts)).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}) : 'Unknown Time';
-        const PHO = r => `<tr><td colspan="${r}"><div class="skeleton" style="height:20px; width:100%;"></div></td></tr>`.repeat(4);
+        var LD = (s=true) => { const el = E('inlineLoader'); if(!el)return; if(s){ el.style.display='flex'; el.style.opacity='1'; }else{ el.style.opacity='0'; setTimeout(()=>el.style.display='none',300); } };
+        var MLD = (s=true) => { const el=E('masterLoader'); if(el) el.style.opacity = s?1:0; setTimeout(()=>el.style.display=s?'flex':'none', s?0:300); };
+        var DT = ts => ts ? new Date(Number(ts)).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit',hour12:true}) : 'Unknown Time';
+        var PHO = r => `<tr><td colspan="${r}"><div class="skeleton" style="height:20px; width:100%;"></div></td></tr>`.repeat(4);
         
-        let ML = {};
+        var ML = {};
         try { document.querySelectorAll('.modal').forEach(m => { ML[m.id] = new bootstrap.Modal(m); m.addEventListener('hidden.bs.modal', ()=> { const f = m.querySelector('form'); if(f) f.reset(); m.querySelectorAll('input[type="hidden"]').forEach(i=>i.value=''); }); }); } catch(err){}
 
         // Fix: on the User Profile tab strip (Edit Balance / Push Notification /
@@ -2400,9 +2400,9 @@
         const F_C_TXT = (v) => { if(v === undefined || v === null) v = 0; return `${SET.currencyImage ? '' : '₹'}${v}${SET.currencyImage ? ' Coins' : ''}`; };
         window.FMT_C_TXT = F_C_TXT;
 
-        const ApplyCurrencySymbol = () => { const symHtml = SET.currencyImage ? `<img src="${SET.currencyImage}" style="width:16px;height:16px;vertical-align:text-bottom;margin-right:2px;display:inline-block;border-radius:50%;object-fit:cover;">` : '₹'; document.querySelectorAll('.c-sym').forEach(el => el.innerHTML = symHtml); const activeId = document.querySelector('.section.active')?.id; if(activeId) R_L(activeId); };
+        var ApplyCurrencySymbol = () => { const symHtml = SET.currencyImage ? `<img src="${SET.currencyImage}" style="width:16px;height:16px;vertical-align:text-bottom;margin-right:2px;display:inline-block;border-radius:50%;object-fit:cover;">` : '₹'; document.querySelectorAll('.c-sym').forEach(el => el.innerHTML = symHtml); const activeId = document.querySelector('.section.active')?.id; if(activeId) R_L(activeId); };
 
-        const FORMAT_USER = (uid, fallbackEmail = '') => {
+        var FORMAT_USER = (uid, fallbackEmail = '') => {
             if (!uid) {
                 return `<strong class="text-white text-truncate d-inline-block mb-1" style="max-width:180px;">Name : Unknown</strong><br><small class="text-muted font-monospace text-truncate d-inline-block mb-1" style="max-width:180px;">Email : ${escapeHtml(fallbackEmail || 'Unknown')}</small><br><small class="text-info font-monospace text-truncate d-inline-block" style="max-width:180px;">UID : N/A</small>`;
             }
@@ -2516,7 +2516,7 @@ window.fetchAndRenderRiskScore = async (targetUid) => {
 };
 
 // 4. Staff Sessions Table Renderer
-const RX_STAFF_SESSIONS = async () => {
+var RX_STAFF_SESSIONS = async () => {
     E('tbStaffSessions').innerHTML = PHO(5);
     try {
         const snap = await get(ref(rd, 'staffSessions'));
@@ -2603,7 +2603,7 @@ window.generateFinancialCSV = async (previewOnly = false) => {
     }
 };
 
-        const A_EX = async (fn, b = null, ms = 20000) => {
+        var A_EX = async (fn, b = null, ms = 20000) => {
             if(LK) return; LK = true; 
             let showLd = false;
             let ldTimer = setTimeout(() => { showLd = true; if(b && (b.tagName==='BUTTON' || b.tagName==='A')){ b.dataset.oht = b.innerHTML; b.innerHTML = `<span class="spinner-border spinner-border-sm" role="status"></span>`; b.disabled = true; } else LD(true); }, 150); 
@@ -2644,7 +2644,7 @@ window.generateFinancialCSV = async (previewOnly = false) => {
             img.src = objUrl;
         });
 
-        const P_IMG = async (f) => {
+        var P_IMG = async (f) => {
             const cf = await COMPRESS_IMG(f);
             const x = new FormData(); x.append('image', cf);
             let r, d;
@@ -2683,16 +2683,16 @@ window.generateFinancialCSV = async (previewOnly = false) => {
             }
         };
 
-        const LOG_ACT = async (type, act, det) => { if(!C_U) return; const d = { uid: C_U.uid, name: window.C_NAME, role: window.C_ROLE, action: act, details: det||'', timestamp: Date.now() }; if(type==='staff') await push(ref(rd, 'staffActivityLogs'), d); if(type==='match') await push(ref(rd, 'matchLogs'), d); };
+        var LOG_ACT = async (type, act, det) => { if(!C_U) return; const d = { uid: C_U.uid, name: window.C_NAME, role: window.C_ROLE, action: act, details: det||'', timestamp: Date.now() }; if(type==='staff') await push(ref(rd, 'staffActivityLogs'), d); if(type==='match') await push(ref(rd, 'matchLogs'), d); };
         const SendNotif = async (uid, title, msg, type) => { if(!uid) return; try { await push(ref(rd, `users/${uid}/notifications`), {title, message: msg, type, read: false, timestamp: Date.now()}); } catch(e){} };
         // Mobile push (FCM) — SendNotif ki tarah hi in-app notif jaata hai, lekin
         // ye actual push jaata hai jese ID PASS / Result Declared ke liye jaata hai.
         // "Withdrawal (Approve/Reject)" aur "Manual Deposit (Approve/Reject)" par
         // isko SendNotif ke saath-saath call karo.
         const SendPush = (uid, title, body, type) => { if(!uid) return; au.currentUser?.getIdToken().then(idToken => { fetch("https://infixify-push.onrender.com/send-user-push", { method: "POST", headers: { "Content-Type": "application/json", "Authorization": "Bearer " + idToken }, body: JSON.stringify({ uid, title, body, type }) }).then(r => r.json()).then(d => console.log("Push Notification Sent:", d)).catch(e => console.error("Push Error:", e)); }).catch(e => console.error("Push Token Error:", e)); };
-        const CHK_P = p => C_P.includes('all') || C_P.includes(p);
+        var CHK_P = p => C_P.includes('all') || C_P.includes(p);
 
-        const APP_PRM = () => {
+        var APP_PRM = () => {
              if(C_P.includes('all')) { document.querySelectorAll('.nav-link').forEach(l=>{if(l.parentElement.tagName==='LI')l.parentElement.style.display='block';}); document.querySelectorAll('.nav-label').forEach(lbl => lbl.style.display = 'flex'); document.querySelectorAll('.nav-group').forEach(grp => grp.style.display = ''); if(E('btnCreateMatch')) E('btnCreateMatch').style.display = 'inline-flex'; if(E('btnBulkCreateMatch')) E('btnBulkCreateMatch').style.display = 'inline-flex'; if(E('btnBulkDeleteAn')) E('btnBulkDeleteAn').style.display = 'inline-flex'; return; }
              document.querySelectorAll('.nav-link').forEach(l => { const p=l.parentElement; if(p.tagName!=='LI')return; const s=l.dataset.section; let r=null;
                 if(s==='dashboard-section') r=['overview_view'];
@@ -2726,7 +2726,7 @@ else if(s === 'reports-export-section') r = ['export_data', 'analytics'];
              if(E('btnCreateMatch')) E('btnCreateMatch').style.display = CHK_P('match_add')?'inline-flex':'none'; if(E('btnBulkCreateMatch')) E('btnBulkCreateMatch').style.display = CHK_P('match_add')?'inline-flex':'none'; if(E('btnBulkDeleteAn')) E('btnBulkDeleteAn').style.display = CHK_P('promo_mgt')?'inline-flex':'none';
         };
 
-        const R_N = id => {
+        var R_N = id => {
             let r=null;
             if(id==='dashboard-section') r=['overview_view'];
             else if(id==='user-analytics-section' || id==='transaction-history-section' || id==='user-activeness-section') r=['analytics'];
@@ -2796,7 +2796,7 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
         document.getElementById('closeSidebarBtn')?.addEventListener('click', () => { E('sidebar').classList.remove('show'); E('sidebarOverlay').classList.remove('show'); });
         document.getElementById('sidebarOverlay')?.addEventListener('click', () => { E('sidebar').classList.remove('show'); E('sidebarOverlay').classList.remove('show'); });
 
-        const B_SYS = async () => {
+        var B_SYS = async () => {
             E('authContainer').style.display = 'none'; E('mainDashboardArea').style.display = 'block'; 
             E('topbarEmailTxt').textContent = C_U.email; E('topbarRoleTxt').textContent = window.C_ROLE;
             
@@ -2924,7 +2924,7 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
             }, e.submitter || e.target.querySelector('button[type="submit"]')); 
         };
 
-        const R_L = id => {
+        var R_L = id => {
             A_EX(async () => {
                 if(id==='dashboard-section') await RX_DS();
                 else if(id==='level-rewards-section') await RX_LR();
@@ -3000,7 +3000,7 @@ else if(id==='reports-export-section') {
         }));
         document.querySelectorAll('.wd-toggle-btn').forEach(b => b.addEventListener('click', e => { document.querySelectorAll('.wd-toggle-btn').forEach(x => { x.classList.remove('active'); x.classList.add('text-info'); }); b.classList.add('active'); b.classList.remove('text-info'); CUR_WD_TYPE = b.dataset.wdType; A_EX(async () => { await RX_WD(); }, b); }));
 
-        const RX_DS = async () => {
+        var RX_DS = async () => {
             E('dashStaffName').textContent = window.C_NAME || 'Staff'; E('dashStaffRole').textContent = window.C_ROLE || 'Admin'; E('dashPermCount').textContent = C_P.includes('all') ? 'All Access' : `${C_P.length} Assigned`;
             if(!window.timeIntv) { window.timeIntv = setInterval(() => { const el = E('dashTime'); if(el) el.textContent = new Date().toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', second:'2-digit'}); }, 1000); }
             // Agar staff ke paas overview_view permission nahi hai to sirf welcome card dikhao,
@@ -3193,7 +3193,7 @@ else if(id==='reports-export-section') {
             a.sort((x,y)=>y.ts-x.ts); lv.innerHTML = a.slice(0,6).map(x=>`<div style="padding:12px; border-left:2px solid var(--accent-primary); background:rgba(0,0,0,0.25); border-radius:0 8px 8px 0; margin-bottom:8px;"><span class="d-block mb-1" style="font-size:0.85rem;">${x.txt}</span><small class="text-muted" style="font-size:0.6rem;">${DT(x.ts)}</small></div>`).join('') || '<p class="text-muted text-center pt-4 small">No recent events.</p>';
         };
 
-        const RX_SS = async () => {
+        var RX_SS = async () => {
             E('cfName').value=SET.appName||''; E('cfLogo').value=SET.logoUrl||''; E('cfZpKey').value=SET.payment?.zap_key||''; E('cfZpTog').checked=!!SET.payment?.gateway_enabled; E('cfZpMin').value=SET.payment?.min_deposit||0; E('cfZpMax').value=SET.payment?.max_deposit||0; E('cfWdMin').value=SET.minWithdraw||0; E('cfUpId').value=SET.upiDetails||''; E('cfUpQr').value=SET.qrCodeUrl||''; E('cfPriv').value=SET.policyPrivacy||''; E('cfTrm').value=SET.policyTerms||''; E('cfRef').value=SET.policyRefund||''; E('cfFair').value=SET.policyFairPlay||'';
             E('visWallet').checked = SET.walletEnabled!==false; E('visLeaderboard').checked = SET.leaderboardEnabled!==false; E('visReferral').checked = SET.referralEnabled!==false; E('visSupport').checked = SET.supportEnabled!==false; E('visEarnings').checked = SET.earningsEnabled!==false; E('visTutorials').checked = SET.tutorialsEnabled!==false; E('visEarnTab').checked = SET.earnEnabled!==false;
             E('currImgU').value = SET.currencyImage || '';
@@ -3272,7 +3272,7 @@ else if(id==='reports-export-section') {
         E('fmCurrency').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('sys_set') && !CHK_P('currency_mgt')) return TS('Unauthorized','error'); let u = E('currImgU').value; if(E('currImgF').files[0]) u = await P_IMG(E('currImgF').files[0]); await update(ref(rd, 'settings'), {currencyImage: u}); SET.currencyImage = u; LOG_ACT('staff', 'Updated Currency Image', ''); CLR_CACHE('settings'); TS('Currency Image Saved'); ApplyCurrencySymbol(); await RX_SS(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
 
-        const RX_TH = async () => { 
+        var RX_TH = async () => { 
             const ts = await fetchWithCache('themeSettings'); 
             if(ts.exists()) { 
                 const v = ts.val(); E('globalThemeSelect').value = v.currentTheme || 'theme-neon'; E('globalThemeLock').checked = v.themeLock || false; 
@@ -3280,8 +3280,8 @@ else if(id==='reports-export-section') {
         };
 
 
-        if(E('anSpeed')) { E('anSpeed').addEventListener('change', (e) => { E('anCustomSpeedDiv').style.display = e.target.value === 'custom' ? 'block' : 'none'; }); }
-        if(E('searchAnInput')) { E('searchAnInput').addEventListener('input', () => RenderAnnouncements()); }
+        if(document.getElementById('anSpeed')) { E('anSpeed').addEventListener('change', (e) => { E('anCustomSpeedDiv').style.display = e.target.value === 'custom' ? 'block' : 'none'; }); }
+        if(document.getElementById('searchAnInput')) { E('searchAnInput').addEventListener('input', () => RenderAnnouncements()); }
         if(E('searchMatchInput')) { E('searchMatchInput').addEventListener('input', () => RENDER_TR_LIST()); }
         if(E('filterMatchStatus')) { E('filterMatchStatus').addEventListener('change', () => RENDER_TR_LIST()); }
 
@@ -3331,11 +3331,11 @@ else if(id==='reports-export-section') {
             else { mdCat.innerHTML = '<option value="">Select Mode...</option>' + modesForGame.map(([mid, m]) => `<option value="${mid}">${m.name}</option>`).join(''); }
         };
 
-        if(E('selectAllAn')) { E('selectAllAn').addEventListener('change', (e) => { document.querySelectorAll('.an-cb').forEach(cb => cb.checked = e.target.checked); checkBulkDeleteAnBtn(); }); }
+        if(document.getElementById('selectAllAn')) { E('selectAllAn').addEventListener('change', (e) => { document.querySelectorAll('.an-cb').forEach(cb => cb.checked = e.target.checked); checkBulkDeleteAnBtn(); }); }
 
-        const checkBulkDeleteAnBtn = () => { try { const checkedBoxes = document.querySelectorAll('.an-cb:checked').length; const totalBoxes = document.querySelectorAll('.an-cb').length; const bulkBtn = E('btnBulkDeleteAn'); if(bulkBtn) bulkBtn.style.display = (checkedBoxes > 0 && CHK_P('promo_mgt')) ? 'inline-block' : 'none'; const selectAll = E('selectAllAn'); if(selectAll) selectAll.checked = (checkedBoxes === totalBoxes && totalBoxes > 0); } catch(e) {} };
+        var checkBulkDeleteAnBtn = () => { try { const checkedBoxes = document.querySelectorAll('.an-cb:checked').length; const totalBoxes = document.querySelectorAll('.an-cb').length; const bulkBtn = E('btnBulkDeleteAn'); if(bulkBtn) bulkBtn.style.display = (checkedBoxes > 0 && CHK_P('promo_mgt')) ? 'inline-block' : 'none'; const selectAll = E('selectAllAn'); if(selectAll) selectAll.checked = (checkedBoxes === totalBoxes && totalBoxes > 0); } catch(e) {} };
 
-        const RenderAnnouncements = () => {
+        var RenderAnnouncements = () => {
             try {
                 const term = (E('searchAnInput')?.value || '').toLowerCase(); let h = ''; let activeTexts = []; let filtered = cachedAnnouncements.filter(a => (a.text || '').toLowerCase().includes(term));
                 filtered.sort((x,y) => (Number(y.createdAt)||0) - (Number(x.createdAt)||0)).forEach(an => {
@@ -3348,8 +3348,8 @@ else if(id==='reports-export-section') {
             } catch(e) {}
         };
 
-        const RX_AN = async () => { RenderAnnouncements(); };
-        const RX_AT = async () => {
+        var RX_AN = async () => { RenderAnnouncements(); };
+        var RX_AT = async () => {
             if(!PAGE_CACHE['announcementTiles']) E('tbAnTiles').innerHTML=PHO(4);
             try {
                 const s = await fetchWithCache('announcementTiles'); let h='';
@@ -3387,7 +3387,7 @@ else if(id==='reports-export-section') {
             } catch(error) { TS(error.message === "PERMISSION_DENIED" ? "Permission Denied! Check your role." : "Failed to Save: " + error.message, "error"); } finally { btn.innerHTML = oHtml; btn.disabled = false; }
         };
 
-        const RX_RC = async () => { 
+        var RX_RC = async () => { 
             if(!PAGE_CACHE['redeemCodes']) E('tbRedeem').innerHTML=PHO(6); 
             try {
                 const s = await fetchWithCache('redeemCodes'); let h=''; 
@@ -3402,7 +3402,7 @@ else if(id==='reports-export-section') {
         const LVL_UPDATE_HINT = () => { const t=E('lvlRewardType').value; const map={ balance:'Number of deposit coins to credit', bonusCash:'Number of bonus coins to credit', spinTickets:'Number of spin wheel tickets to grant', scratchCards:'Number of scratch cards to grant', membership:'Number of days of membership to grant' }; E('lvlAmountLabel').textContent = t==='membership' ? 'Membership Days' : 'Reward Amount'; E('lvlAmountHint').textContent = map[t] || 'Reward amount'; };
         E('lvlRewardType')?.addEventListener('change', LVL_UPDATE_HINT);
 
-        const RX_LR = async () => {
+        var RX_LR = async () => {
             if(!PAGE_CACHE['levelRewards']) E('tbLevelRewards').innerHTML=PHO(5);
             try {
                 const s = await fetchWithCache('levelRewards'); let h='';
@@ -3429,7 +3429,7 @@ else if(id==='reports-export-section') {
 
         E('fmRedeem').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('rdm_mgt')) return TS('Unauthorized','error'); const am=Number(E('rdVal').value), md=E('rdMode').value, u={}; if(md==='single'){ let cd=E('rdHash').value.trim().toUpperCase() || Math.random().toString(36).substr(2,8).toUpperCase(); u[`redeemCodes/${cd}`]={amount:am, status:'active', createdAt:Date.now()}; LOG_ACT('staff','Generated Redeem Code', `Code: ${cd} | ${FMT_C(am)}`); }else{ const q=Number(E('rdQty').value); for(let i=0;i<q;i++){ u[`redeemCodes/${Math.random().toString(36).substr(2,10).toUpperCase()}`]={amount:am, status:'active', createdAt:Date.now()}; } LOG_ACT('staff','Bulk Generated Redeem Codes', `Qty: ${q} | ${FMT_C(am)}`); } await update(ref(rd), u); CLR_CACHE('redeemCodes'); TS('Code(s) Generated'); ML['redeemModal'].hide(); await RX_RC(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
-        const RX_CC = async () => { 
+        var RX_CC = async () => { 
             if(!PAGE_CACHE['couponCodes']) E('tbCoupons').innerHTML=PHO(7); 
             try {
                 const s = await fetchWithCache('couponCodes'); let h=''; 
@@ -3442,7 +3442,7 @@ else if(id==='reports-export-section') {
 
         E('fmCoupon').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('coup_mgt')) return TS('Unauthorized','error'); const cid = E('cpId').value.trim().toUpperCase(); await update(ref(rd, `couponCodes/${cid}`), {amount:Number(E('cpVal').value), expiry:E('cpTtl').value, type:E('cpType').value, status:'active', createdAt:Date.now()}); LOG_ACT('staff','Created Coupon', `Code: ${cid} | Value: ${E('cpVal').value}`); CLR_CACHE('couponCodes'); TS('Coupon Created'); ML['couponModal'].hide(); await RX_CC(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
-        const RX_TU = async () => { 
+        var RX_TU = async () => { 
             if(!PAGE_CACHE['tutorials']) E('tbTutorials').innerHTML=`<div class="col-12 text-center py-5"><div class="spinner-border text-danger"></div></div>`; 
             try {
                 const s = await fetchWithCache('tutorials'); let h=''; 
@@ -3455,9 +3455,9 @@ else if(id==='reports-export-section') {
 
         E('fmTutorial').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('sup_mgt')) return TS('Unauthorized','error'); await push(ref(rd, 'tutorials'), {title:E('tuL').value, videoUrl:E('tuU').value, description:E('tuC').value, createdAt:Date.now()}); LOG_ACT('staff', 'Added Tutorial', E('tuL').value); CLR_CACHE('tutorials'); TS('Tutorial Added'); ML['tutorialModal'].hide(); await RX_TU(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
-        const RX_LA = async () => { const s=await fetchWithCache('settings/languages'); if(s.exists()) E('langHiToggle').checked = s.val().hi===true; };
+        var RX_LA = async () => { const s=await fetchWithCache('settings/languages'); if(s.exists()) E('langHiToggle').checked = s.val().hi===true; };
         
-        const RX_GA = async () => { 
+        var RX_GA = async () => { 
             if(!PAGE_CACHE['games']) E('tbGames').innerHTML=PHO(4); 
             try {
                 const s = await fetchWithCache('games'); let h=''; GC={}; 
@@ -3472,10 +3472,10 @@ else if(id==='reports-export-section') {
 
         E('fmGame').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('game_mgt') && !CHK_P('match_edit')) return TS('Unauthorized','error'); const id=E('gaId').value; let u=E('gaU').value; if(E('gaF').files[0]) u = await P_IMG(E('gaF').files[0]); const d={name:E('gaN').value, imageUrl:u, status:E('gaStatus').value}; if(id) await update(ref(rd,`games/${id}`), d); else await push(ref(rd,'games'), d); LOG_ACT('staff', id?'Edited Game':'Added Game', d.name); CLR_CACHE('games'); TS('Game Saved'); ML['gameModal'].hide(); await RX_GA(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
-        const RX_MD = async () => { try { if(Object.keys(GC).length === 0) await RX_GA().catch(()=>{}); E('modeFilterGameSelect').innerHTML = `<option value="all">All Games</option>` + Object.entries(GC).map(([gid,g])=>`<option value="${gid}">${g.name}</option>`).join(''); await RenderModesTable('all'); } catch(e) {} };
+        var RX_MD = async () => { try { if(Object.keys(GC).length === 0) await RX_GA().catch(()=>{}); E('modeFilterGameSelect').innerHTML = `<option value="all">All Games</option>` + Object.entries(GC).map(([gid,g])=>`<option value="${gid}">${g.name}</option>`).join(''); await RenderModesTable('all'); } catch(e) {} };
         E('modeFilterGameSelect').onchange = (e) => RenderModesTable(e.target.value);
 
-        const RenderModesTable = async (filterGameId) => {
+        var RenderModesTable = async (filterGameId) => {
             if(!PAGE_CACHE['modes']) E('tbModes').innerHTML=PHO(4);
             try {
                 const s = await fetchWithCache('modes'); let h=''; MC={};
@@ -3491,7 +3491,7 @@ else if(id==='reports-export-section') {
 
         E('fmMode').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('mode_mgt')) return TS('Unauthorized','error'); const id=E('mdId').value; const gameId = E('mdGameId').value; if(!gameId) return TS("Select a Game first", "warning"); const d={gameId: gameId, gameName: GC[gameId]?.name || '', name: E('mdName').value, sortOrder: Number(E('mdOrder').value)||0, status: E('mdStatus').value}; if(id) await update(ref(rd, `modes/${id}`), d); else await push(ref(rd, 'modes'), d); LOG_ACT('staff', id?'Edited Mode':'Added Mode', d.name); CLR_CACHE('modes'); TS('Mode Saved'); ML['modeModal'].hide(); await RX_MD(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
-        const RX_LT = async () => { 
+        var RX_LT = async () => { 
             if(!PAGE_CACHE['lotteries']) E('tbLotteryList').innerHTML = PHO(7); 
             try {
                 const s = await fetchWithCache('lotteries'); let h = ''; 
@@ -3545,7 +3545,7 @@ else if(id==='reports-export-section') {
         // koi change nahi, wo pehle jaisa hi bannerUrl/description padhta hai).
         let RULE_PRESETS = {}, BANNER_PRESETS = {};
 
-        const RX_RP = async () => {
+        var RX_RP = async () => {
             if(!PAGE_CACHE['matchRulesPresets']) E('tbRulePresets').innerHTML=PHO(3);
             try {
                 const s = await fetchWithCache('matchRulesPresets'); let h=''; RULE_PRESETS = {};
@@ -3564,7 +3564,7 @@ else if(id==='reports-export-section') {
             } catch(e) { E('tbRulePresets').innerHTML = `<tr><td colspan="3" class="text-center text-danger py-4">Error loading rules presets</td></tr>`; }
         };
 
-        const RX_BP = async () => {
+        var RX_BP = async () => {
             if(!PAGE_CACHE['matchBannerPresets']) E('tbBannerPresets').innerHTML=PHO(3);
             try {
                 const s = await fetchWithCache('matchBannerPresets'); let h=''; BANNER_PRESETS = {};
@@ -3585,7 +3585,7 @@ else if(id==='reports-export-section') {
         // Create/Edit Match modals ke andar rules/banner dropdown ko latest presets se
         // populate karta hai. Dropdown IDs: trRuleSel/trBannerSel (Create/Edit Match),
         // bmRuleSel/bmBannerSel (Bulk/Quick Create Match, agar present ho).
-        const RX_FILL_PRESET_DROPDOWNS = () => {
+        var RX_FILL_PRESET_DROPDOWNS = () => {
             const ruleOpts = '<option value="">-- Select Rules Preset --</option>' + Object.entries(RULE_PRESETS).map(([id,p]) => `<option value="${id}">${p.name||'Untitled'}</option>`).join('');
             const bannerOpts = '<option value="">-- Select Banner Preset --</option>' + Object.entries(BANNER_PRESETS).map(([id,p]) => `<option value="${id}">${p.name||'Untitled'}</option>`).join('');
             ['trRuleSel','bmRuleSel'].forEach(id => { const el=E(id); if(el){ const cur=el.value; el.innerHTML=ruleOpts; if(cur) el.value=cur; } });
@@ -3603,7 +3603,7 @@ else if(id==='reports-export-section') {
 
         E('fmBannerPreset').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('match_add') && !CHK_P('match_edit')) return TS('Unauthorized','error'); const id=E('bpId').value, f=E('bpFile').files[0]; let u=E('bpUrl').value; if(f) u = await P_IMG(f); else if(u) u = await OPTIMIZE_REMOTE_IMG(u); if(!u) return TS('Banner image required (URL or upload)','error'); const d = {name: E('bpName').value, url: u}; if(!id) d.createdAt = Date.now(); if(id) await update(ref(rd,`matchBannerPresets/${id}`), d); else await push(ref(rd,'matchBannerPresets'), d); LOG_ACT('staff', id?'Edited Banner Preset':'Added Banner Preset', d.name); CLR_CACHE('matchBannerPresets'); TS('Banner Preset Saved'); ML['bannerPresetModal'].hide(); await RX_BP(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
-        const RX_PR = async () => { 
+        var RX_PR = async () => { 
             if(!PAGE_CACHE['promotions']) E('tbPromos').innerHTML=PHO(6); 
             try {
                 const s = await fetchWithCache('promotions'); let h=''; 
@@ -3629,7 +3629,7 @@ else if(id==='reports-export-section') {
         // NAYA: Static Support Tiles (WhatsApp/Telegram/Discord) — link + visibility manage karta hai.
         // Purana "Multiple Support Options" dynamic table/modal system hata diya gaya hai
         // (name/icon/description ab user.html mein hardcoded hain, static tiles ki tarah).
-        const RX_SUP = async () => {
+        var RX_SUP = async () => {
             // static WhatsApp/Telegram/Discord tiles ke link + visibility fields ko
             // current Firebase flags se sync karo (default: visible/true jab tak flag explicitly false na ho)
             const tv = (SET && SET.supportTilesVisibility) || {};
@@ -3827,7 +3827,7 @@ else if(id==='reports-export-section') {
             RX_TICKETS();
         }));
 
-        const RX_FAQ = async () => {
+        var RX_FAQ = async () => {
             if(!PAGE_CACHE['aiFaqs']) E('tbAiFaqs').innerHTML=PHO(5);
             try {
                 const s = await fetchWithCache('aiFaqs');
@@ -3908,9 +3908,9 @@ else if(id==='reports-export-section') {
         }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
         let cachedMatches = [];
-        let SELECTED_MATCHES = new Set();
+        var SELECTED_MATCHES = new Set();
 
-        const UPDATE_MATCH_BULK_TOOLBAR = () => {
+        var UPDATE_MATCH_BULK_TOOLBAR = () => {
             const bar = E('matchBulkToolbar'); if(!bar) return;
             const n = SELECTED_MATCHES.size;
             bar.classList.toggle('d-none', n === 0);
@@ -3937,7 +3937,7 @@ else if(id==='reports-export-section') {
             return score;
         };
 
-        const RENDER_TR_LIST = () => {
+        var RENDER_TR_LIST = () => {
             const qRaw = (E('searchMatchInput')?.value || '').trim();
             const statusFilter = (E('filterMatchStatus')?.value || '').trim();
             let matches = cachedMatches;
@@ -3995,7 +3995,7 @@ else if(id==='reports-export-section') {
             UPDATE_MATCH_BULK_TOOLBAR();
         };
 
-        const RX_TR = async (snap = null) => { 
+        var RX_TR = async (snap = null) => { 
             // FIX: replacing tbTourneys' innerHTML resets the scroll position
             // of its scroll container (and the page) back to top, which felt
             // like the whole section "refreshing" after every edit. Capture
@@ -4280,7 +4280,7 @@ if(E('trEf')) E('trEf').addEventListener('input', TOGGLE_FREE_MATCH_UI);
             return 1;
         }
 
-        const RX_TM = async () => { 
+        var RX_TM = async () => { 
             try {
                 const s = await fetchWithCache('tournaments'); let h='<option value="">Select Target Match...</option>'; 
                 if(s.exists()){ 
@@ -4369,7 +4369,7 @@ if(E('trEf')) E('trEf').addEventListener('input', TOGGLE_FREE_MATCH_UI);
             }
         };
 
-        const RX_RESULT_MATCHES = async () => {
+        var RX_RESULT_MATCHES = async () => {
             E('tbResultMatches').innerHTML = PHO(5);
             try {
                 if(!Object.keys(MC).length) {
@@ -4522,7 +4522,7 @@ Copy Player Name"></i></div>
 
         E('tbCompute').oninput = e => { if(e.target.tagName==='INPUT'){ const r=e.target.closest('tr'); const pk=Number(r.dataset.pk)||0, k=Number(r.querySelector('.tm-k').value)||0, ex=Number(r.querySelector('.tm-e').value)||0; r.querySelector('.tm-p').innerHTML=FMT_C((pk*k)+ex); } };
         
-        const RX_LB = async () => { 
+        var RX_LB = async () => { 
             let h=''; 
             Object.values(UC).forEach(u => { h+=`<tr data-u="${u.uid}"><td>${FORMAT_USER(u.uid, u.email)}</td><td><input type="number" class="form-control ms-r w-75 fw-bold text-center" value="${u.leaderboardRank||''}"></td><td><div class="d-flex align-items-center"><span class="text-warning fw-bold fs-5 me-2 c-sym"></span><input type="number" class="form-control ms-v w-75 fw-bold text-warning font-monospace" value="${u.leaderboardDisplayEarnings||''}"></div></td></tr>`; }); 
             E('tbRanks').innerHTML = h; ApplyCurrencySymbol(); 
@@ -4544,7 +4544,7 @@ Copy Player Name"></i></div>
             if (c === 'netlify') return `<span class="badge bg-warning text-dark" style="font-size:0.6rem;">Netlify (Old)</span>`;
             return `<span class="badge bg-secondary" style="font-size:0.6rem;">Unknown</span>`;
         };
-        const R_US = async (page) => {
+        var R_US = async (page) => {
     if (page) usersCurrentPage = page;
     let h='';
     // NAYA: Balance filter (All / >0 / =0) — Wallet Balance column jaisa hi
@@ -4795,7 +4795,7 @@ E('fmAdj').onsubmit = e => {
             E('fmResetPwd').reset();
         }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
-        const RX_UA = async () => { 
+        var RX_UA = async () => { 
             try {
                 const[d,t]=await Promise.all([fetchWithCache('deposits'), fetchWithCache('tournaments')]); 
                 let s={}, a={}; 
@@ -4817,7 +4817,7 @@ E('fmAdj').onsubmit = e => {
         // ================= USER ACTIVENESS / DAU =================
         // lastActiveAt field user.html me har app-open par write hota hai.
         // Is function se admin Last 7 Days DAU chart + Today's active users list dekhta hai.
-        const RX_DAU = async () => {
+        var RX_DAU = async () => {
             try {
                 // Refresh button bind (sirf ek baar)
                 if(!E('btnRefreshDAU').dataset.bound) {
@@ -5028,7 +5028,7 @@ E('fmAdj').onsubmit = e => {
             }
         };
 
-        const RX_TX = async () => { 
+        var RX_TX = async () => { 
             if(!PAGE_CACHE['deposits'] || !PAGE_CACHE['withdrawals']) E('tbLedger').innerHTML=PHO(6); 
             try {
                 const[d,w]=await Promise.all([fetchWithCache('deposits'),fetchWithCache('withdrawals')]); 
@@ -5048,7 +5048,7 @@ E('fmAdj').onsubmit = e => {
         // VIP membership abhi active hai ya nahi — withdrawal tables me highlight/priority ke liye.
         const isVipUser = (uid) => { const u = UC[uid]; return !!(u && u.vipActive === true && Number(u.vipExpiresAt || 0) > Date.now()); };
 
-        const RX_WD = async () => { 
+        var RX_WD = async () => { 
             const s = CUR_WD_STATUS;
             try {
                 if(CUR_WD_TYPE === 'money') {
@@ -5094,7 +5094,7 @@ E('fmAdj').onsubmit = e => {
             } catch(e) { E('tbWd').innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Error loading data</td></tr>`; }
         };
 
-        const RX_DP = async s => { 
+        var RX_DP = async s => { 
             const tH={'pending':'<tr><th>Date & Time</th><th>User Account</th><th>Amount</th><th>UTR / Receipt</th><th>Payment Method</th><th>Action</th></tr>','success':'<tr><th>Date & Time</th><th>User Account</th><th>Amount</th><th>UTR / Receipt</th><th>Payment Method</th></tr>','failed':'<tr><th>Date & Time</th><th>User Account</th><th>Amount</th><th>UTR / Receipt</th><th>Payment Method</th></tr>'}; 
             E('dpTh').innerHTML=tH[s]; E('tbDp').innerHTML=PHO({pending:6,success:5,failed:5}[s]); 
             let fetchStatus = s; if(s === 'success') fetchStatus = ['success', 'completed']; if(s === 'failed') fetchStatus = ['failed', 'rejected'];
@@ -5115,7 +5115,7 @@ E('fmAdj').onsubmit = e => {
             } catch(e) { E('tbDp').innerHTML = `<tr><td colspan="${s==='pending'?6:5}" class="text-center text-danger py-4">Error loading data</td></tr>`; }
         };
         
-        const RX_RF = async s => { 
+        var RX_RF = async s => { 
             const tH={'pending':'<tr><th>Date</th><th>Inviter (Parent)</th><th>New User (Child)</th><th>Auto-Reward Progress</th></tr>','completed':'<tr><th>Date Processed</th><th>Inviter (Parent)</th><th>New User (Child)</th><th>Reward Sent</th></tr>'}; 
             E('refTh').innerHTML=tH[s]; E('tbRef').innerHTML=PHO(4); 
             try {
@@ -5142,7 +5142,7 @@ E('fmAdj').onsubmit = e => {
             } catch(e) { E('tbRef').innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">Error loading records</td></tr>`; }
         };
 
-        const RX_RF_AN = async () => { 
+        var RX_RF_AN = async () => { 
             try {
                 const dt = await fetchWithCache('pendingReferrals'); let totP = 0, totE = 0, refsMap = {}; 
                 if(dt.exists()){ 
@@ -5153,7 +5153,7 @@ E('fmAdj').onsubmit = e => {
             } catch(e) {}
         };
 
-        const RX_NT = async () => { 
+        var RX_NT = async () => { 
             try {
                 const s=await fetchWithCache('globalNotifications'); let h=''; 
                 if(s.exists()){ 
@@ -5173,7 +5173,7 @@ E('fmAdj').onsubmit = e => {
             } catch(e) { E('tbBcast').innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Error loading notifications</td></tr>`; }
         };
         
-        const RX_ST = async () => { 
+        var RX_ST = async () => { 
             if(!PAGE_CACHE['staff']) E('tbStaff').innerHTML=PHO(6); 
             try {
                 const s=await fetchWithCache('staff'); let h=''; 
@@ -5236,7 +5236,7 @@ E('fmAdj').onsubmit = e => {
             return '<span class="text-muted">-</span>';
         };
 
-        const RX_ML = async () => { 
+        var RX_ML = async () => { 
             if(!PAGE_CACHE['matchLogs']) E('tbMatchLogs').innerHTML=PHO(5); 
             try {
                 const s=await fetchWithCache('matchLogs'); let h=''; 
@@ -5247,7 +5247,7 @@ E('fmAdj').onsubmit = e => {
             } catch(e) { E('tbMatchLogs').innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Error loading match logs</td></tr>`; }
         };
 
-        const RX_SL = async () => { 
+        var RX_SL = async () => { 
             if(!PAGE_CACHE['staffActivityLogs']) E('tbStaffLogs').innerHTML=PHO(5); 
             try {
                 const s=await fetchWithCache('staffActivityLogs'); let h=''; 
@@ -5261,7 +5261,7 @@ E('fmAdj').onsubmit = e => {
         if(E('staffLogSearch')) { E('staffLogSearch').oninput = e => { const tm = e.target.value.toLowerCase(); E('tbStaffLogs').querySelectorAll('tr').forEach(r => { r.style.display = r.innerText.toLowerCase().includes(tm) ? '' : 'none'; }); }; }
         if(E('staffLogFilter')) { E('staffLogFilter').onchange = e => { const val = e.target.value; const now = Date.now(); E('tbStaffLogs').querySelectorAll('tr').forEach(r => { const ts = Number(r.dataset.ts || 0); let show = true; if(val === 'today') show = (now - ts) <= 86400000; else if(val === '7days') show = (now - ts) <= 604800000; else if(val === '30days') show = (now - ts) <= 2592000000; const tm = E('staffLogSearch').value.toLowerCase(); if(show && tm) show = r.innerText.toLowerCase().includes(tm); r.style.display = show ? '' : 'none'; }); }; }
 
-        const RX_PL = async () => { 
+        var RX_PL = async () => { 
     if(!PAGE_CACHE['notificationLogs']) E('tbPushLogs').innerHTML = PHO(6); 
     try {
         const s = await fetchWithCache('notificationLogs');
@@ -5301,7 +5301,7 @@ if(E('pushLogSearch')) {
 // Purely derived from existing 'deposits' (ZapUPI) and 'withdrawals' nodes —
 // no new backend endpoint needed. Success rate = success/completed count
 // divided by total (excluding still-pending) inside the selected window.
-const RX_GW = async () => {
+var RX_GW = async () => {
     const days = Number(E('ghWindow').value) || 7;
     const cutoff = Date.now() - (days * 86400000);
     try {
@@ -5366,7 +5366,7 @@ if(E('ghWindow')) E('ghWindow').onchange = () => RX_GW();
 // aisa lagta tha ki koi staff ne manually adjust kiya jabki asal me koi bhi
 // staff involved nahi tha. Ye section ab sirf genuine manual wallet edits
 // (Adjust Balance form se) dikhata hai.
-const RX_BA = async () => {
+var RX_BA = async () => {
     E('tbBalAudit').innerHTML = PHO(6);
     try {
         const [dpSnap, logSnap] = await Promise.all([ fetchWithCache('deposits'), fetchWithCache('staffActivityLogs') ]);
@@ -5412,7 +5412,7 @@ if(E('baSearch')) E('baSearch').oninput = e => { const tm=e.target.value.toLower
 // ================= STAFF PERFORMANCE TRACKING =================
 // Aggregates the same staffActivityLogs feed used by Staff Logs into
 // per-staff-member counters, so no new logging call is needed anywhere else.
-const RX_SP = async () => {
+var RX_SP = async () => {
     const tb = document.querySelector('#staff-performance-section tbody');
     if(tb) tb.innerHTML = PHO(8);
     try {
@@ -6663,7 +6663,7 @@ if(E('spWindow')) E('spWindow').onchange = () => RX_SP();
         // member's own client can only ever create new messages, never delete
         // existing ones, per the security rules). Runs once per admin session using
         // the chat data this page already has loaded, so it costs no extra reads.
-        const VIP_CHAT_RETENTION_MS = 2 * 24 * 60 * 60 * 1000; // 2 days
+        var VIP_CHAT_RETENTION_MS = 2 * 24 * 60 * 60 * 1000; // 2 days
         let vipChatCleanupDone = false;
         async function cleanupOldVipChats(allChatsSnap){
             if(vipChatCleanupDone) return;
@@ -6965,7 +6965,7 @@ if(E('spWindow')) E('spWindow').onchange = () => RX_SP();
         setInterval(()=>{ if(document.getElementById('vip-members-section')?.classList.contains('active')) RX_VIP_MEMBERS().catch(()=>{}); },15000);
 
         // ================= SHOP E-COMMERCE LOGIC =================
-        const RX_SHOP_PRODS = async () => {
+        var RX_SHOP_PRODS = async () => {
             if(!PAGE_CACHE['shopProducts']) E('tbShopProducts').innerHTML = PHO(4);
             try {
                 const s = await fetchWithCache('shopProducts'); let h='';
@@ -6983,7 +6983,7 @@ if(E('spWindow')) E('spWindow').onchange = () => RX_SP();
             } catch(e) { E('tbShopProducts').innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">Error loading data</td></tr>`; }
         };
 
-        const RX_SHOP_ORDERS = async () => {
+        var RX_SHOP_ORDERS = async () => {
             if(!PAGE_CACHE['shopOrders']) E('tbShopOrders').innerHTML = PHO(5);
             try {
                 const s = await fetchWithCache('shopOrders'); let h='';
@@ -7331,7 +7331,7 @@ window.RUN_MASTER_AUDIT = async function() {
 };
 
         // ===================== P&L REPORT (Match Profit & Loss) =====================
-        const RX_PL_REPORT = async () => {
+        var RX_PL_REPORT = async () => {
             // Populate Game & Mode dropdowns from cached GC/MC (fetch fresh if empty)
             if(Object.keys(GC).length === 0) { const gS = await fetchWithCache('games'); GC={}; if(gS.exists()) gS.forEach(c => {GC[c.key]=c.val();}); }
             if(Object.keys(MC).length === 0) { const mS = await fetchWithCache('modes'); MC={}; if(mS.exists()) mS.forEach(c => {MC[c.key]=c.val();}); }
