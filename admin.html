@@ -2848,8 +2848,13 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
             }, 10);
         };
 
+        // FIX: onAuthStateChanged synchronously fire kar sakta hai jab Firebase auth
+        // pehle se cached ho (same-tick callback). Is wajah se script ke baaki const
+        // declarations (R_L, RX_LR, etc.) TDZ mein hote hain — browser "Cannot access
+        // 'RX_LR' before initialization" throw karta hai. setTimeout(0) ensure karta hai
+        // ki callback sirf tab fire ho jab poora module script execute ho chuka ho.
         try {
-            onAuthStateChanged(au, async u => {
+            onAuthStateChanged(au, u => setTimeout(async () => {
                 if(u) { 
                     C_U = u; 
                     try { 
@@ -2899,7 +2904,7 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
                         E('loginSection').style.display='block'; 
                     }); 
                 }
-            });
+            }, 0));
         } catch(err) { MLD(false); TS('Network failure on boot', 'error'); }
 
         E('setupForm').onsubmit = e => { 
