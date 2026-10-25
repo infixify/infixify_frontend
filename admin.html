@@ -163,11 +163,7 @@
         .role-admin { color: #f59e0b; border-color: #f59e0b; }
         .role-staff { color: #3b82f6; border-color: #3b82f6; }
 
-        /* Announcement Marquee CSS */
-        .marquee-container { overflow: hidden; white-space: nowrap; position: relative; width: 100%; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid var(--border-glass); }
-        .marquee-content { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
-        .marquee-content:hover { animation-play-state: paused; }
-        @keyframes marquee { 0% { transform: translate(0, 0); } 100% { transform: translate(-100%, 0); } }
+
     </style>
 </head>
 <body data-theme="obsidian">
@@ -265,8 +261,6 @@
                     <div class="nav-label nav-group-toggle" data-group-toggle="grp-marketing"><span>Growth & Marketing</span><i class="bi bi-chevron-down toggle-caret"></i></div>
                     <ul class="nav-group-list" id="grp-marketing">
                         <li><a class="nav-link text-warning fw-bold" data-section="lottery-mgt-section"><i class="bi bi-ticket-detailed-fill"></i> Lucky Draw (Lottery)</a></li>
-                        <li><a class="nav-link" data-section="announcement-tiles-section"><i class="bi bi-card-heading"></i> Popup Announcements</a></li>
-                        <li><a class="nav-link" data-section="announcements-section"><i class="bi bi-chat-left-text-fill"></i> Announcements</a></li>
                         <li><a class="nav-link" data-section="promotions-section"><i class="bi bi-megaphone-fill"></i> Banners & Promos</a></li>
                         <li><a class="nav-link" data-section="level-rewards-section"><i class="bi bi-bar-chart-steps"></i> Level Rewards</a></li>
                         <li><a class="nav-link" data-section="redeem-codes-section"><i class="bi bi-qr-code"></i> Redeem Codes</a></li>
@@ -782,58 +776,7 @@
 </section>
 
             <!-- Growth & Marketing -->
-            <section id="announcement-tiles-section" class="section">
-                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                    <h3 class="fw-bold m-0"><i class="bi bi-card-heading text-primary me-2"></i> Popup Announcement Tiles</h3>
-                    <button class="btn-premium" data-action="add-at-tile"><i class="bi bi-plus-lg"></i> Add New Tile</button>
-                </div>
-                <div class="glass-card p-0 overflow-hidden">
-                    <div class="table-responsive">
-                        <table class="table table-glass mb-0">
-                            <thead><tr><th>Title</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
-                            <tbody id="tbAnTiles"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
 
-            <section id="announcements-section" class="section">
-                <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-                    <h3 class="fw-bold m-0"><i class="bi bi-chat-left-text-fill text-primary me-2"></i> Announcement Manager</h3>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <input type="search" class="form-control bg-dark border-secondary text-onaccent" id="searchAnInput" placeholder="Search text..." style="max-width: 250px;">
-                        <button class="btn btn-outline-danger fw-bold" id="btnBulkDeleteAn" style="display: none;" data-action="bulk-delete-an"><i class="bi bi-trash-fill"></i> Delete Selected</button>
-                        <button class="btn-premium" data-action="add-an"><i class="bi bi-plus-lg"></i> Add Announcement</button>
-                    </div>
-                </div>
-
-                <div class="glass-card border-info mb-4">
-                    <h6 class="fw-bold text-info mb-3"><i class="bi bi-eye-fill me-2"></i> Live App Preview</h6>
-                    <div class="marquee-container">
-                        <div class="marquee-content" id="anLivePreview">
-                            <!-- Dynamic content injected here -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="glass-card p-0 overflow-hidden">
-                    <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
-                        <table class="table table-glass mb-0">
-                            <thead style="position: sticky; top: 0; background: var(--bg-surface); z-index: 1; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                                <tr>
-                                    <th style="width: 40px;"><input class="form-check-input" type="checkbox" id="selectAllAn"></th>
-                                    <th>Announcement Text</th>
-                                    <th>Speed</th>
-                                    <th>Status</th>
-                                    <th>Dates</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbAnnouncements"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
 
             <section id="level-rewards-section" class="section">
                 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
@@ -1058,7 +1001,7 @@
                 <div class="glass-card p-0 overflow-hidden">
                     <div class="table-responsive">
                         <table class="table table-glass mb-0">
-                            <thead><tr><th>Order</th><th>Mode / Game</th><th>Thumbnail</th><th>Status</th><th>Action</th></tr></thead>
+                            <thead><tr><th>Order</th><th>Mode / Game</th><th>Status</th><th>Action</th></tr></thead>
                             <tbody id="tbModes"></tbody>
                         </table>
                     </div>
@@ -1720,8 +1663,7 @@
         </div>
     </div>
 
-    <div class="modal fade" id="anTileModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-primary"><div class="modal-header border-primary" style="background:rgba(59, 130, 246, 0.1);"><h5 class="modal-title fw-bold text-primary"><i class="bi bi-card-heading me-2"></i> Announcement Tile</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="fmAnTile"><input type="hidden" id="atId"><div class="mb-3"><label class="form-label text-primary">Tile Bold Title</label><input type="text" class="form-control" id="atTitle" required placeholder="e.g. Server Maintenance Notice"></div><div class="mb-3"><label class="form-label">Full Content</label><textarea class="form-control" id="atContent" rows="5" required placeholder="Detailed information..."></textarea></div><div class="mb-4"><label class="form-label">Status</label><select class="form-select" id="atStatus"><option value="active">Active</option><option value="inactive">Inactive</option></select></div><button type="submit" class="btn-premium w-100 py-3">Save Tile</button></form></div></div></div></div>
-    <div class="modal fade" id="announcementModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-primary"><div class="modal-header border-primary" style="background:rgba(59, 130, 246, 0.1);"><h5 class="modal-title fw-bold text-primary"><i class="bi bi-chat-left-text-fill me-2"></i> Add / Edit Announcement</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="fmAnnouncement"><input type="hidden" id="anId"><div class="mb-3"><label class="form-label text-primary">Announcement Text</label><textarea class="form-control" id="anText" rows="3" required placeholder="Enter running text here..."></textarea></div><div class="mb-3"><label class="form-label">Scrolling Speed</label><select class="form-select" id="anSpeed" required><option value="15">Normal (15s)</option><option value="25">Slow (25s)</option><option value="10">Fast (10s)</option><option value="custom">Custom Speed</option></select></div><div class="mb-3" id="anCustomSpeedDiv" style="display: none;"><label class="form-label text-warning">Custom Speed (Seconds)</label><input type="number" class="form-control" id="anCustomSpeed" min="1" max="100" value="15"></div><div class="mb-4"><label class="form-label">Status</label><select class="form-select" id="anStatus"><option value="active">Active</option><option value="inactive">Inactive</option></select></div><button type="submit" class="btn-premium w-100 py-3">Save Announcement</button></form></div></div></div></div>
+
 
     <div class="modal fade" id="staffOpModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-centered"><div class="modal-content"><div class="modal-header border-glass"><h5 class="modal-title fw-bold text-warning font-monospace" id="stHd">Add / Edit Staff</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="fmStf"><input type="hidden" id="stId"><div class="row g-3">
     <div class="col-md-4"><label class="form-label text-warning">Staff Name</label><input type="text" class="form-control" id="stN" required></div>
@@ -1863,7 +1805,7 @@
         </div>
     </div></div></div></div>
 
-    <div class="modal fade" id="modeModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content border-info"><div class="modal-header border-info" style="background:rgba(14, 165, 233,0.1);"><h5 class="modal-title fw-bold text-info"><i class="bi bi-controller me-2"></i> Add / Edit Mode</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="fmMode"><input type="hidden" id="mdId"><div class="mb-3"><label class="form-label text-info">Select Base Game</label><select class="form-select fw-bold bg-dark text-onaccent" id="mdGameId" required></select></div><div class="mb-3"><label class="form-label">Mode Name (e.g. BR Rank)</label><input type="text" class="form-control" id="mdName" required></div><div class="mb-3"><label class="form-label text-warning">Display Order (Lowest number = Top / shows first)</label><input type="number" class="form-control" id="mdOrder" value="0" min="0"></div><div class="mb-3"><label class="form-label text-info">Square Thumbnail URL (Or Upload)</label><input type="url" class="form-control mb-2" id="mdThumbU"><input type="file" class="form-control p-2" id="mdThumbF" accept="image/*"></div><div class="mb-4"><label class="form-label">Status</label><select class="form-select" id="mdStatus"><option value="active">Active</option><option value="inactive">Inactive</option></select></div><button type="submit" class="btn-premium w-100 py-3" style="background: var(--info); color:#fff;">Save Mode Config</button></form></div></div></div></div>
+    <div class="modal fade" id="modeModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable"><div class="modal-content border-info"><div class="modal-header border-info" style="background:rgba(14, 165, 233,0.1);"><h5 class="modal-title fw-bold text-info"><i class="bi bi-controller me-2"></i> Add / Edit Mode</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="fmMode"><input type="hidden" id="mdId"><div class="mb-3"><label class="form-label text-info">Select Base Game</label><select class="form-select fw-bold bg-dark text-onaccent" id="mdGameId" required></select></div><div class="mb-3"><label class="form-label">Mode Name (e.g. BR Rank)</label><input type="text" class="form-control" id="mdName" required></div><div class="mb-3"><label class="form-label text-warning">Display Order (Lowest number = Top / shows first)</label><input type="number" class="form-control" id="mdOrder" value="0" min="0"></div><div class="mb-4"><label class="form-label">Status</label><select class="form-select" id="mdStatus"><option value="active">Active</option><option value="inactive">Inactive</option></select></div><button type="submit" class="btn-premium w-100 py-3" style="background: var(--info); color:#fff;">Save Mode Config</button></form></div></div></div></div>
 
     <div class="modal fade" id="rulePresetModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-warning"><div class="modal-header border-warning" style="background:rgba(245,158,11,0.1);"><h5 class="modal-title fw-bold text-warning">Rules Preset</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="fmRulePreset"><input type="hidden" id="rpId"><div class="mb-3"><label class="form-label text-primary">Preset Name (Admin ke liye, dropdown me dikhega)</label><input type="text" class="form-control" id="rpName" required placeholder="e.g. Standard Solo Rules"></div><div class="mb-3"><label class="form-label">Rules & Description</label><textarea class="form-control text-muted" id="rpContent" rows="6" required></textarea></div><button type="submit" class="btn-premium w-100 py-3" style="background:var(--warning); color:#000;">Save Rules Preset</button></form></div></div></div></div>
 
@@ -3536,13 +3478,13 @@ else if(id==='reports-export-section') {
                     const arr=[]; s.forEach(c => { const m=c.val(); MC[c.key]=m; arr.push({id:c.key, ...m}); });
                     arr.sort((a,b) => (Number(a.sortOrder)||0) - (Number(b.sortOrder)||0) || (a.name||'').localeCompare(b.name||'')).forEach(m => {
                         if(filterGameId !== 'all' && m.gameId !== filterGameId) return;
-                        h+=`<tr><td class="text-center"><span class="badge bg-dark border border-secondary">${Number(m.sortOrder)||0}</span></td><td><strong class="text-white text-truncate d-inline-block" style="max-width:180px;">${m.name||'Unknown Mode'}</strong><br><small class="text-muted text-truncate d-inline-block" style="max-width:180px;"><i class="bi bi-joystick text-primary"></i> ${m.gameName || GC[m.gameId]?.name || 'Unknown'}</small></td><td><img src="${m.thumbnailUrl||'https://via.placeholder.com/60x60'}" height="40" style="border-radius:6px; border:1px solid var(--border-glass); object-fit:cover;"></td><td><span class="badge-premium badge-${m.status==='active'?'success':'danger'}">${(m.status||'active').toUpperCase()}</span></td><td><button class="btn btn-sm btn-outline-info me-2 py-1" data-action="e-md" data-id="${m.id}"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger py-1" data-action="d-md" data-id="${m.id}"><i class="bi bi-trash"></i></button></td></tr>`;
+                        h+=`<tr><td class="text-center"><span class="badge bg-dark border border-secondary">${Number(m.sortOrder)||0}</span></td><td><strong class="text-white text-truncate d-inline-block" style="max-width:180px;">${m.name||'Unknown Mode'}</strong><br><small class="text-muted text-truncate d-inline-block" style="max-width:180px;"><i class="bi bi-joystick text-primary"></i> ${m.gameName || GC[m.gameId]?.name || 'Unknown'}</small></td><td><span class="badge-premium badge-${m.status==='active'?'success':'danger'}">${(m.status||'active').toUpperCase()}</span></td><td><button class="btn btn-sm btn-outline-info me-2 py-1" data-action="e-md" data-id="${m.id}"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-outline-danger py-1" data-action="d-md" data-id="${m.id}"><i class="bi bi-trash"></i></button></td></tr>`;
                     });
-                } E('tbModes').innerHTML = h || `<tr><td colspan="5" class="text-center text-muted py-4">No Modes Configured</td></tr>`;
-            } catch(e) { E('tbModes').innerHTML = `<tr><td colspan="5" class="text-center text-danger py-4">Error loading modes</td></tr>`; }
+                } E('tbModes').innerHTML = h || `<tr><td colspan="4" class="text-center text-muted py-4">No Modes Configured</td></tr>`;
+            } catch(e) { E('tbModes').innerHTML = `<tr><td colspan="4" class="text-center text-danger py-4">Error loading modes</td></tr>`; }
         };
 
-        E('fmMode').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('mode_mgt')) return TS('Unauthorized','error'); const id=E('mdId').value; let t=E('mdThumbU').value; if(E('mdThumbF').files[0]) t = await P_IMG(E('mdThumbF').files[0]); const gameId = E('mdGameId').value; if(!gameId) return TS("Select a Game first", "warning"); const d={gameId: gameId, gameName: GC[gameId]?.name || '', name: E('mdName').value, sortOrder: Number(E('mdOrder').value)||0, thumbnailUrl: t, status: E('mdStatus').value}; if(id) await update(ref(rd, `modes/${id}`), d); else await push(ref(rd, 'modes'), d); LOG_ACT('staff', id?'Edited Mode':'Added Mode', d.name); CLR_CACHE('modes'); TS('Mode Saved'); ML['modeModal'].hide(); await RX_MD(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
+        E('fmMode').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('mode_mgt')) return TS('Unauthorized','error'); const id=E('mdId').value; const gameId = E('mdGameId').value; if(!gameId) return TS("Select a Game first", "warning"); const d={gameId: gameId, gameName: GC[gameId]?.name || '', name: E('mdName').value, sortOrder: Number(E('mdOrder').value)||0, status: E('mdStatus').value}; if(id) await update(ref(rd, `modes/${id}`), d); else await push(ref(rd, 'modes'), d); LOG_ACT('staff', id?'Edited Mode':'Added Mode', d.name); CLR_CACHE('modes'); TS('Mode Saved'); ML['modeModal'].hide(); await RX_MD(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
         const RX_LT = async () => { 
             if(!PAGE_CACHE['lotteries']) E('tbLotteryList').innerHTML = PHO(7); 
@@ -5707,7 +5649,7 @@ if(E('spWindow')) E('spWindow').onchange = () => RX_SP();
                 if(a==='e-an'){ if(!CHK_P('promo_mgt')) return TS('Unauthorized','error'); E('fmAnnouncement').reset(); try { const an = (await get(ref(rd,`announcements/${id}`))).val(); E('anId').value = id; E('anText').value = an.text; E('anStatus').value = an.status || 'active'; if([10, 15, 25].includes(Number(an.speed))) { E('anSpeed').value = an.speed; E('anCustomSpeedDiv').style.display = 'none'; } else { E('anSpeed').value = 'custom'; E('anCustomSpeed').value = an.speed || 15; E('anCustomSpeedDiv').style.display = 'block'; } ML['announcementModal'].show(); } catch(err) { TS('Error fetching data', 'error'); } }
                 if(a==='tg-an'){ if(!CHK_P('promo_mgt')) { b.checked = !b.checked; return TS('Unauthorized','error'); } const newStatus = b.checked ? 'active' : 'inactive'; await update(ref(rd, `announcements/${id}`), { status: newStatus, updatedAt: Date.now() }); TS(`Announcement is now ${newStatus}`); }
                 if(a==='e-ga'){ if(!CHK_P('game_mgt') && !CHK_P('match_edit')) return TS('Unauthorized','error'); E('fmGame').reset(); const g=(await get(ref(rd,`games/${id}`))).val(); E('gaId').value=id; E('gaN').value=g.name; E('gaU').value=g.imageUrl||''; E('gaStatus').value=g.status||'active'; ML['gameModal'].show(); }
-                if(a==='e-md'){ if(!CHK_P('mode_mgt')) return TS('Unauthorized','error'); E('fmMode').reset(); const m=(await get(ref(rd,`modes/${id}`))).val(); E('mdId').value=id; if(!Object.keys(GC).length) await RX_GA().catch(()=>{}); E('mdGameId').innerHTML = '<option value="">Select Game</option>' + Object.entries(GC).map(([gid,g])=>`<option value="${gid}" ${gid===m.gameId?'selected':''}>${g.name}</option>`).join(''); E('mdName').value=m.name; E('mdOrder').value=Number(m.sortOrder)||0; E('mdThumbU').value=m.thumbnailUrl||''; E('mdStatus').value=m.status||'active'; ML['modeModal'].show(); }
+                if(a==='e-md'){ if(!CHK_P('mode_mgt')) return TS('Unauthorized','error'); E('fmMode').reset(); const m=(await get(ref(rd,`modes/${id}`))).val(); E('mdId').value=id; if(!Object.keys(GC).length) await RX_GA().catch(()=>{}); E('mdGameId').innerHTML = '<option value="">Select Game</option>' + Object.entries(GC).map(([gid,g])=>`<option value="${gid}" ${gid===m.gameId?'selected':''}>${g.name}</option>`).join(''); E('mdName').value=m.name; E('mdOrder').value=Number(m.sortOrder)||0; E('mdStatus').value=m.status||'active'; ML['modeModal'].show(); }
                 if(a==='e-pr'){ if(!CHK_P('promo_mgt')) return TS('Unauthorized','error'); E('fmPromo').reset(); const p=(await get(ref(rd,`promotions/${id}`))).val(); E('prId').value=id; E('prTitle').value=p.title||''; E('prDesc').value=p.description||''; E('prTime').value=p.sliderTime||5; E('prOrder').value=Number(p.order)||0; E('prU').value=p.imageUrl; E('prT').value=p.link||''; E('prS').checked=p.active!==false; ML['promoModal'].show(); }
                 if(a==='e-rp'){ if(!CHK_P('match_add') && !CHK_P('match_edit')) return TS('Unauthorized','error'); E('fmRulePreset').reset(); const p=(await get(ref(rd,`matchRulesPresets/${id}`))).val(); E('rpId').value=id; E('rpName').value=p.name||''; E('rpContent').value=p.content?p.content.replace(/<br\s*\/?>/gi,'\n'):''; ML['rulePresetModal'].show(); }
                 if(a==='e-bp'){ if(!CHK_P('match_add') && !CHK_P('match_edit')) return TS('Unauthorized','error'); E('fmBannerPreset').reset(); const p=(await get(ref(rd,`matchBannerPresets/${id}`))).val(); E('bpId').value=id; E('bpName').value=p.name||''; E('bpUrl').value=p.url||''; ML['bannerPresetModal'].show(); }
