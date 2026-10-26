@@ -2281,7 +2281,7 @@
             // re-fetching the full collection on every app open. Bump it here so
             // it stays in sync with every admin save, without having to touch
             // every single save-handler individually.
-            const CLIENT_CACHED = ['games','modes','promotions','announcements','announcementTiles','themeSettings','settings','shopProducts'];
+            const CLIENT_CACHED = ['games','modes','promotions','announcements','announcementTiles','themeSettings','settings','shopProducts','tournaments'];
             list.forEach(p => {
                 if(CLIENT_CACHED.includes(p)) {
                     update(ref(rd, 'contentVersion'), { [p]: Date.now() }).catch(()=>{});
