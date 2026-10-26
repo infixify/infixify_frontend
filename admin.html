@@ -615,6 +615,26 @@
                          </div>
                     </div>
                     
+                    <!-- ImgBB API Key Config -->
+                    <div class="glass-card border-primary" style="border-left: 6px solid var(--accent-primary);">
+                        <h5 class="fw-bold mb-3 pb-2 border-bottom border-glass"><i class="bi bi-image-fill text-primary me-2"></i> Image Upload (ImgBB) API Key</h5>
+                        <p class="small text-muted mb-3">Yeh key image uploads ke liye use hoti hai (screenshots, thumbnails, etc.). ImgBB dashboard se key copy karein: <a href="https://api.imgbb.com" target="_blank" class="text-primary">api.imgbb.com</a></p>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-10">
+                                <label class="form-label text-warning fw-bold">ImgBB API Key</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-dark border-glass text-muted"><i class="bi bi-key-fill"></i></span>
+                                    <input type="password" class="form-control bg-dark text-onaccent fw-bold font-monospace" id="cfImgbbKey" autocomplete="off" placeholder="Enter your ImgBB API key...">
+                                    <button class="btn btn-outline-secondary" type="button" onclick="const f=E('cfImgbbKey');f.type=f.type==='password'?'text':'password';this.innerHTML=f.type==='password'?'<i class=\'bi bi-eye-fill\'></i>':'<i class=\'bi bi-eye-slash-fill\'></i>'" title="Show/Hide Key"><i class="bi bi-eye-fill"></i></button>
+                                </div>
+                                <small class="text-muted mt-1 d-block"><i class="bi bi-info-circle me-1"></i>Current active key (masked). Naya key daalein to save karte hi update ho jayega.</small>
+                            </div>
+                            <div class="col-md-2">
+                                <a href="https://api.imgbb.com" target="_blank" class="btn btn-outline-primary w-100 py-2 fw-bold"><i class="bi bi-box-arrow-up-right me-1"></i> Dashboard</a>
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="submit" class="btn-premium px-5 py-4 fs-5 w-100 shadow-lg text-uppercase fw-bold" style="letter-spacing: 2px;"><i class="bi bi-save2 me-2 fs-4"></i> Save All Settings</button>
                 </form>
 
@@ -2163,7 +2183,9 @@
   appId: "1:858605806100:web:396038590b61d581f23d01",
   measurementId: "G-2BP4T19848"
 };
-        const IMG_KEY = '2025bde6e6faae44003dc56a9d52aa6a';
+        // IMG_KEY is loaded dynamically from Firebase settings/imgbbKey at startup.
+        // Fallback to hardcoded value only if DB has no key yet (first-time setup).
+        let IMG_KEY = '2025bde6e6faae44003dc56a9d52aa6a';
 
         // SECURITY: user-supplied text (display names, game names, delivery
         // addresses, notes, chat messages, etc.) must NEVER go into innerHTML
@@ -2811,6 +2833,8 @@ else if(id=== 'reports-export-section') r = ['export_data', 'analytics'];
                     SET = s.val(); 
                     if(SET.payment) {window.ZK = SET.payment.zap_key; window.ZGE = !!SET.payment.gateway_enabled;} 
                     if(SET.currencyImage) ApplyCurrencySymbol();
+                    // Load ImgBB key from Firebase (overrides hardcoded fallback)
+                    if(SET.imgbbKey) IMG_KEY = SET.imgbbKey;
                 }
                 
                 APP_PRM(); 
@@ -3198,6 +3222,9 @@ else if(id==='reports-export-section') {
             E('visWallet').checked = SET.walletEnabled!==false; E('visLeaderboard').checked = SET.leaderboardEnabled!==false; E('visReferral').checked = SET.referralEnabled!==false; E('visSupport').checked = SET.supportEnabled!==false; E('visEarnings').checked = SET.earningsEnabled!==false; E('visTutorials').checked = SET.tutorialsEnabled!==false; E('visEarnTab').checked = SET.earnEnabled!==false;
             E('currImgU').value = SET.currencyImage || '';
             if(SET.currencyImage) E('currImgPreview').innerHTML = `<img src="${SET.currencyImage}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">`; else E('currImgPreview').innerHTML = '<span class="fs-1 text-muted c-sym">₹</span>';
+            // ImgBB Key — show placeholder if saved, else empty
+            E('cfImgbbKey').value = SET.imgbbKey || '';
+            E('cfImgbbKey').placeholder = SET.imgbbKey ? '••••••••••••••••••••••••••••••• (saved)' : 'Enter your ImgBB API key...';
 
             // Ad Network Config load
             const AC = SET.adConfig || {};
@@ -3223,7 +3250,7 @@ else if(id==='reports-export-section') {
 
         };
 
-        E('masterConfigForm').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('sys_set')) return TS('Unauthorized','error'); await update(ref(rd, 'settings'), {appName:E('cfName').value, logoUrl:E('cfLogo').value, minWithdraw:Number(E('cfWdMin').value), upiDetails:E('cfUpId').value, qrCodeUrl:E('cfUpQr').value, payment:{zap_key:E('cfZpKey').value, gateway_enabled:E('cfZpTog').checked, min_deposit:Number(E('cfZpMin').value), max_deposit:Number(E('cfZpMax').value)}, policyPrivacy:E('cfPriv').value, policyTerms:E('cfTrm').value, policyRefund:E('cfRef').value, policyFairPlay:E('cfFair').value, walletEnabled:E('visWallet').checked, leaderboardEnabled:E('visLeaderboard').checked, referralEnabled:E('visReferral').checked, supportEnabled:E('visSupport').checked, earningsEnabled:E('visEarnings').checked, tutorialsEnabled:E('visTutorials').checked, earnEnabled:E('visEarnTab').checked}); LOG_ACT('staff', 'Updated System Settings', ''); CLR_CACHE('settings'); TS('App Settings Saved'); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
+        E('masterConfigForm').onsubmit = e => { e.preventDefault(); A_EX(async () => { if(!CHK_P('sys_set')) return TS('Unauthorized','error'); const newImgbbKey = E('cfImgbbKey').value.trim(); const settingsPayload = {appName:E('cfName').value, logoUrl:E('cfLogo').value, minWithdraw:Number(E('cfWdMin').value), upiDetails:E('cfUpId').value, qrCodeUrl:E('cfUpQr').value, payment:{zap_key:E('cfZpKey').value, gateway_enabled:E('cfZpTog').checked, min_deposit:Number(E('cfZpMin').value), max_deposit:Number(E('cfZpMax').value)}, policyPrivacy:E('cfPriv').value, policyTerms:E('cfTrm').value, policyRefund:E('cfRef').value, policyFairPlay:E('cfFair').value, walletEnabled:E('visWallet').checked, leaderboardEnabled:E('visLeaderboard').checked, referralEnabled:E('visReferral').checked, supportEnabled:E('visSupport').checked, earningsEnabled:E('visEarnings').checked, tutorialsEnabled:E('visTutorials').checked, earnEnabled:E('visEarnTab').checked}; if(newImgbbKey) settingsPayload.imgbbKey = newImgbbKey; await update(ref(rd, 'settings'), settingsPayload); if(newImgbbKey) { IMG_KEY = newImgbbKey; SET.imgbbKey = newImgbbKey; } LOG_ACT('staff', 'Updated System Settings', ''); CLR_CACHE('settings'); TS('App Settings Saved'); await RX_SS(); }, e.submitter || e.target.querySelector('button[type="submit"]')); };
 
         E('adConfigForm').onsubmit = e => { e.preventDefault(); A_EX(async () => {
             if(!CHK_P('sys_set')) return TS('Unauthorized','error');
